@@ -20,9 +20,13 @@
         // --- SESSION AND USERS STATE ---
         let activeSession = {
             name: "Brais Pérez",
+            email: "braisperezlorenzo@gmail.com",
             role: "Administrador",
             company: "Mi Negocio S.L.",
-            nif: "A1234567B"
+            nif: "A1234567B",
+            lastLogin: "11/06/2026 13:30",
+            statCount: 0,
+            statTotal: 0
         };
 
         let systemUsers = [
@@ -665,6 +669,7 @@
 
             const titles = {
                 'dash': { title: 'Inicio y Estadísticas', sub: 'Visualiza el resumen financiero de tu negocio adaptado al reglamento Veri*factu.' },
+                'profile': { title: 'Mi Perfil de Facturación', sub: 'Consulta tus datos de acceso, estadísticas personales y permisos reglamentarios SIF.' },
                 'demo': { title: 'Caso Práctico: Academia Online 2026', sub: 'Análisis detallado e importación de la simulación del archivo CSV de Academia Online.' },
                 'emit': { title: 'Hacer Nueva Factura', sub: 'Completa los campos e introduce los conceptos. El sistema registrará el hash encadenado automáticamente.' },
                 'hist': { title: 'Historial de Facturas', sub: 'Consulta el listado inalterable de facturas oficiales y genera sus copias en PDF.' },
@@ -680,6 +685,7 @@
             document.getElementById('w-title-text').innerText = titles[tab].title;
             document.getElementById('w-title-sub').innerText = titles[tab].sub;
 
+            if (tab === 'profile') renderUserProfileTab();
             if (tab === 'emit') prepararFormularioFactura();
             if (tab === 'dash') p1_renderStats();
             if (tab === 'hist') {
@@ -694,6 +700,7 @@
             }
         }
 
+        // --- EMISIÓN FACTURA ---
         // --- EMISIÓN FACTURA ---
         function prepararFormularioFactura() {
             let sigNumero = 1;
@@ -713,17 +720,19 @@
             addInvoiceLine();
 
             calcularImportesFactura();
+            renderPresets();
+            actualizarLivePreview();
         }
 
         function addInvoiceLine() {
             const linesBody = document.getElementById('inv-lines-body');
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><input type="text" class="line-concepto" placeholder="Ej. Prestación de servicios de albañilería / pintura" required style="width:100%;"></td>
-                <td><input type="number" class="line-cantidad" value="1" min="1" step="any" oninput="calcularImportesFactura()" required style="width:100%; text-align:right;"></td>
-                <td><input type="number" class="line-precio" value="0.00" min="0" step="0.01" oninput="calcularImportesFactura()" required style="width:100%; text-align:right;"></td>
+                <td><input type="text" class="line-concepto" placeholder="Ej. Prestación de servicios de consultoría" oninput="actualizarLivePreview()" required style="width:100%;"></td>
+                <td><input type="number" class="line-cantidad" value="1" min="1" step="any" oninput="calcularImportesFactura(); actualizarLivePreview();" required style="width:100%; text-align:right;"></td>
+                <td><input type="number" class="line-precio" value="0.00" min="0" step="0.01" oninput="calcularImportesFactura(); actualizarLivePreview();" required style="width:100%; text-align:right;"></td>
                 <td>
-                    <select class="line-iva" onchange="calcularImportesFactura()" style="width:100%;">
+                    <select class="line-iva" onchange="calcularImportesFactura(); actualizarLivePreview();" style="width:100%;">
                         <option value="21">21% (Normal)</option>
                         <option value="10">10% (Reducido)</option>
                         <option value="4">4% (Superreducido)</option>
@@ -731,7 +740,7 @@
                     </select>
                 </td>
                 <td style="text-align:right; font-weight:700; color:var(--primary);" class="line-total-ver">0,00 €</td>
-                <td style="text-align:center;"><button type="button" class="btn btn-secondary btn-danger" style="padding:0.35rem 0.5rem; font-size:0.75rem;" onclick="removeLineRow(this)">Eliminar</button></td>
+                <td style="text-align:center;"><button type="button" class="btn btn-secondary btn-danger" style="padding:0.35rem 0.5rem; font-size:0.75rem;" onclick="removeLineRow(this); actualizarLivePreview();">Eliminar</button></td>
             `;
             linesBody.appendChild(tr);
             calcularImportesFactura();
@@ -743,6 +752,7 @@
             if (linesBody.querySelectorAll('tr').length > 1) {
                 row.remove();
                 calcularImportesFactura();
+                actualizarLivePreview();
             } else {
                 alert("La factura debe tener al menos una línea.");
             }
@@ -919,6 +929,7 @@
             await registrarAuditLog('FACTURA_EMITIDA', `Factura ${invoice.id} emitida a ${invoice.cliente.razon} (${invoice.cliente.nif}) por importe de ${invoice.total.toFixed(2)} €.`);
             showToast(`Factura ${invoice.id} emitida con éxito.`);
             mostrarPreviewFactura(invoice.id);
+            setTab('hist');
             
             p1_renderStats();
             p1_renderHistorial();
@@ -1031,7 +1042,7 @@
         function inicializarSesion() {
             const savedSession = localStorage.getItem('vf_session');
             if (savedSession) {
-                activeSession = JSON.parse(savedSession);
+                activeSession = { ...activeSession, ...JSON.parse(savedSession) };
             } else {
                 localStorage.setItem('vf_session', JSON.stringify(activeSession));
             }
@@ -1348,6 +1359,212 @@
                 `;
                 body.appendChild(tr);
             });
+        }
+
+        // --- NEW PROFESSIONAL UI ENHANCEMENTS ---
+
+        const SERVICE_PRESETS = [
+            { label: "Suscripción Mensual", concepto: "Suscripción Plan Mensual Oposiciones", precio: 8.99, iva: 21 },
+            { label: "Consultoría TI", concepto: "Servicios Profesionales de Consultoría Tecnológica", precio: 65.00, iva: 21 },
+            { label: "Desarrollo Web", concepto: "Desarrollo e Integración de Software a Medida", precio: 1200.00, iva: 21 },
+            { label: "Mantenimiento Cloud", concepto: "Soporte y Administración de Servidores en la Nube", precio: 150.00, iva: 21 },
+            { label: "Formación", concepto: "Sesión de Formación Técnica para Personal de Empresa", precio: 450.00, iva: 21 }
+        ];
+
+        function renderPresets() {
+            const container = document.getElementById('presets-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            SERVICE_PRESETS.forEach(preset => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'preset-badge-btn';
+                btn.innerText = preset.label;
+                btn.onclick = () => aplicarPreset(preset);
+                container.appendChild(btn);
+            });
+        }
+
+        function aplicarPreset(preset) {
+            const linesBody = document.getElementById('inv-lines-body');
+            const rows = linesBody ? linesBody.querySelectorAll('tr') : [];
+            
+            let targetRow = null;
+            if (rows.length === 1) {
+                const conceptoInput = rows[0].querySelector('.line-concepto');
+                const precioInput = rows[0].querySelector('.line-precio');
+                if (conceptoInput && conceptoInput.value === '' && precioInput && parseFloat(precioInput.value) === 0) {
+                    targetRow = rows[0];
+                }
+            }
+
+            if (!targetRow) {
+                addInvoiceLine();
+                const newRows = linesBody.querySelectorAll('tr');
+                targetRow = newRows[newRows.length - 1];
+            }
+
+            targetRow.querySelector('.line-concepto').value = preset.concepto;
+            targetRow.querySelector('.line-cantidad').value = 1;
+            targetRow.querySelector('.line-precio').value = preset.precio.toFixed(2);
+            targetRow.querySelector('.line-iva').value = preset.iva;
+
+            calcularImportesFactura();
+            actualizarLivePreview();
+            showToast(`Preset "${preset.label}" aplicado.`);
+        }
+
+        function renderUserProfileTab() {
+            let myCount = invoices.length;
+            let myTotal = invoices.reduce((sum, item) => sum + item.total, 0);
+
+            document.getElementById('profile-full-name').innerText = activeSession.name;
+            document.getElementById('profile-user-email').innerText = activeSession.email || (activeSession.name.toLowerCase().replace(' ', '') + '@facturafacil.es');
+            
+            const badge = document.getElementById('profile-badge-role');
+            if (badge) {
+                badge.innerText = activeSession.role;
+                badge.className = 'badge';
+                if (activeSession.role === 'Administrador') badge.classList.add('badge-admin');
+                else if (activeSession.role === 'Empleado') badge.classList.add('badge-employee');
+                else if (activeSession.role === 'Auditor') badge.classList.add('badge-auditor');
+            }
+
+            document.getElementById('profile-avatar-box').innerText = activeSession.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('profile-company-name').innerText = appConfig.razon;
+            document.getElementById('profile-company-nif').innerText = appConfig.nif;
+            document.getElementById('profile-last-login').innerText = activeSession.lastLogin || new Date().toLocaleString();
+
+            document.getElementById('profile-stats-count').innerText = myCount;
+            document.getElementById('profile-stats-total').innerText = myTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+
+            // Permisos checks
+            const pEmit = document.getElementById('perm-emit');
+            const pLogs = document.getElementById('perm-logs');
+            const pConfig = document.getElementById('perm-config');
+
+            const setPermBadge = (el, allowed) => {
+                if (!el) return;
+                if (allowed) {
+                    el.innerText = 'Autorizado';
+                    el.className = 'badge badge-success';
+                    el.style.backgroundColor = 'var(--success-light)';
+                    el.style.color = 'var(--success)';
+                } else {
+                    el.innerText = 'Denegado';
+                    el.className = 'badge';
+                    el.style.backgroundColor = 'var(--error-light)';
+                    el.style.color = 'var(--error)';
+                    el.style.borderColor = 'rgba(225,29,72,0.15)';
+                }
+            };
+
+            setPermBadge(pEmit, activeSession.role !== 'Auditor');
+            setPermBadge(pLogs, true); // All roles can inspect logs in this compliance suite
+            setPermBadge(pConfig, activeSession.role === 'Administrador');
+        }
+
+        function actualizarLivePreview() {
+            // Emisor
+            document.getElementById('lp-emi-name').innerText = appConfig.razon;
+            document.getElementById('lp-emi-nif').innerText = "NIF: " + appConfig.nif;
+            document.getElementById('lp-emi-addr').innerText = `${appConfig.direccion}, ${appConfig.cp} ${appConfig.ciudad}`;
+
+            // Meta Right
+            const serie = document.getElementById('inv-serie').value;
+            const numero = document.getElementById('inv-numero').value;
+            document.getElementById('lp-inv-id').innerText = `FACTURA ${serie}-${numero}`;
+            
+            const fechaInput = document.getElementById('inv-fecha').value;
+            const fechaFormat = fechaInput ? fechaInput.split('-').reverse().join('-') : '--/--/----';
+            document.getElementById('lp-inv-date').innerText = `Fecha: ${fechaFormat}`;
+
+            // Cliente
+            const clientSel = document.getElementById('inv-cliente-sel');
+            const selectedNif = clientSel ? clientSel.value : '';
+            const clientCard = document.getElementById('client-preview-card');
+            
+            if (selectedNif) {
+                const cli = clients.find(c => c.nif === selectedNif);
+                if (cli) {
+                    document.getElementById('lp-cli-name').innerText = cli.razon;
+                    document.getElementById('lp-cli-nif').innerText = "NIF: " + cli.nif;
+                    document.getElementById('lp-cli-addr').innerText = cli.direccion;
+
+                    // Update client preview interactive card in form
+                    document.getElementById('client-preview-name').innerText = cli.razon;
+                    document.getElementById('client-preview-nif-txt').innerText = "NIF: " + cli.nif;
+                    document.getElementById('client-preview-addr').innerText = cli.direccion;
+                    document.getElementById('client-preview-avatar').innerText = cli.razon.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                    if (clientCard) clientCard.style.display = 'flex';
+                }
+            } else {
+                document.getElementById('lp-cli-name').innerText = "Selecciona un cliente...";
+                document.getElementById('lp-cli-nif').innerText = "NIF: --";
+                document.getElementById('lp-cli-addr').innerText = "Dirección: --";
+                if (clientCard) clientCard.style.display = 'none';
+            }
+
+            // Lines
+            const linesBody = document.getElementById('inv-lines-body');
+            const lpItemsBody = document.getElementById('lp-items-body');
+            if (!lpItemsBody) return;
+            lpItemsBody.innerHTML = '';
+
+            const rows = linesBody ? linesBody.querySelectorAll('tr') : [];
+            let baseTotal = 0;
+            let ivaTotal = 0;
+
+            rows.forEach(row => {
+                const conceptoInput = row.querySelector('.line-concepto');
+                const concepto = conceptoInput ? (conceptoInput.value || 'Concepto sin definir') : 'Concepto sin definir';
+                const cant = parseFloat(row.querySelector('.line-cantidad').value) || 0;
+                const precio = parseFloat(row.querySelector('.line-precio').value) || 0;
+                const ivaPct = parseFloat(row.querySelector('.line-iva').value) || 0;
+
+                const baseLine = cant * precio;
+                const ivaLine = baseLine * (ivaPct / 100);
+                const totalLine = baseLine + ivaLine;
+
+                baseTotal += baseLine;
+                ivaTotal += ivaLine;
+
+                // Update subtotal display on form line row
+                const subtotalCell = row.querySelector('.line-total-ver');
+                if (subtotalCell) {
+                    subtotalCell.innerText = totalLine.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+                }
+
+                // Add to Live Preview document table
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-semibold" style="text-align: left;">${concepto}</td>
+                    <td class="text-right">${cant}</td>
+                    <td class="text-right">${precio.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
+                    <td class="text-right font-bold">${totalLine.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
+                `;
+                lpItemsBody.appendChild(tr);
+            });
+
+            if (rows.length === 0) {
+                lpItemsBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Sin conceptos añadidos</td></tr>';
+            }
+
+            const grandTotal = baseTotal + ivaTotal;
+
+            // Form totals update
+            const calcBase = document.getElementById('calc-base');
+            const calcIva = document.getElementById('calc-iva');
+            const calcTotal = document.getElementById('calc-total');
+            if (calcBase) calcBase.innerText = baseTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+            if (calcIva) calcIva.innerText = ivaTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+            if (calcTotal) calcTotal.innerText = grandTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+
+            // Live preview totals update
+            document.getElementById('lp-subtotal').innerText = baseTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+            document.getElementById('lp-iva').innerText = ivaTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+            document.getElementById('lp-total').innerText = grandTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
         }
 
         window.onload = async () => {

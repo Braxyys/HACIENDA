@@ -31,6 +31,7 @@
         <aside>
             <ul class="menu-list">
                 <li><button class="menu-item-btn active" id="m-dash" onclick="setTab('dash')">📊 Inicio y Estadísticas</button></li>
+                <li><button class="menu-item-btn" id="m-profile" onclick="setTab('profile')">👤 Mi Perfil</button></li>
                 <li><button class="menu-item-btn" id="m-demo" onclick="setTab('demo')">💡 Demo Academia Online 2026</button></li>
                 <li><button class="menu-item-btn" id="m-emit" onclick="setTab('emit')">📝 Hacer Nueva Factura</button></li>
                 <li><button class="menu-item-btn" id="m-hist" onclick="setTab('hist')">📂 Historial de Facturas</button></li>
@@ -247,88 +248,178 @@
             <!-- TAB 2: EMITIR FACTURA                 -->
             <!-- ===================================== -->
             <div class="tab-pane" id="pane-emit">
-                <div class="info-alert">
-                    <strong>Paso 1:</strong> Selecciona un cliente de la lista. Si no lo has registrado aún, ve a la pestaña <strong>"Mis Clientes"</strong>. <br>
-                    <strong>Paso 2:</strong> Añade las líneas de los servicios prestados con su descripción e importe. La numeración de la factura se asigna sola para que no cometas errores de correlación.
-                </div>
+                <div class="invoice-workspace-grid">
+                    <!-- COLUMNA DE EDICIÓN -->
+                    <div class="invoice-form-column">
+                        <div class="info-alert" style="margin-bottom: 1.25rem; padding: 0.85rem 1.25rem; font-size: 0.82rem;">
+                            <strong>💡 Emisión Veri*factu Inteligente:</strong> Rellena los conceptos y los importes. La firma, el encadenamiento secuencial y el QR oficial se pre-visualizan y calculan en tiempo real.
+                        </div>
 
-                <div class="glass-panel">
-                    <form onsubmit="event.preventDefault(); emitirNuevaFactura();">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Serie de Facturación</label>
-                                <input type="text" id="inv-serie" value="F-2026" required>
-                                <span class="form-help">Ej. F-2026 para facturas normales</span>
-                            </div>
-                            <div class="form-group">
-                                <label>Número asignado</label>
-                                <input type="number" id="inv-numero" class="bg-gray-200 text-muted" value="1" readonly required>
-                                <span class="form-help">Asignado de forma correlativa automática</span>
-                            </div>
-                            <div class="form-group">
-                                <label>Fecha de emisión</label>
-                                <input type="date" id="inv-fecha" required>
+                        <!-- Presets de servicios rápidos -->
+                        <div class="glass-panel" style="padding: 1.25rem; margin-bottom: 1.25rem;">
+                            <h4 style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">Conceptos y Servicios Frecuentes</h4>
+                            <div class="flex-wrap flex-gap-05" id="presets-container">
+                                <!-- Botones de presets dinámicos -->
                             </div>
                         </div>
 
-                        <div class="form-row border-top p-top-125">
-                            <div class="form-group grid-span-2">
-                                <label>Cliente receptor</label>
-                                <select id="inv-cliente-sel" onchange="autoCompletarCliente()" required>
-                                    <option value="">-- Elige un cliente registrado --</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>NIF del Cliente</label>
-                                <input type="text" id="inv-cli-nif" class="bg-gray-200 text-muted" readonly required>
-                            </div>
-                        </div>
+                        <div class="glass-panel" style="padding: 1.75rem;">
+                            <form onsubmit="event.preventDefault(); emitirNuevaFactura();" id="invoice-create-form">
+                                <div class="form-row" style="margin-bottom: 1rem; gap: 1rem;">
+                                    <div class="form-group">
+                                        <label>Serie de Facturación</label>
+                                        <input type="text" id="inv-serie" value="F-2026" oninput="actualizarLivePreview()" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Número asignado</label>
+                                        <input type="number" id="inv-numero" class="bg-gray-200 text-muted" value="1" readonly required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fecha de emisión</label>
+                                        <input type="date" id="inv-fecha" onchange="actualizarLivePreview()" required>
+                                    </div>
+                                </div>
 
-                        <!-- Líneas de factura -->
-                        <div class="border-top p-top-125 m-top-15">
-                            <label class="d-block m-bottom-05">Líneas de la Factura (Servicios o Productos)</label>
-                            <table class="items-table">
-                                <thead>
-                                    <tr>
-                                        <th class="w-50">Descripción del concepto</th>
-                                        <th class="w-12 text-right">Cantidad</th>
-                                        <th class="w-15 text-right">Precio Unitario (€)</th>
-                                        <th class="w-13 text-right">IVA (%)</th>
-                                        <th class="w-10 text-right">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="inv-lines-body">
-                                    <!-- Inserción dinámica de líneas -->
-                                </tbody>
-                            </table>
-                            <button type="button" class="btn btn-secondary font-size-xs" onclick="addInvoiceLine()">
-                                ➕ Añadir otra línea de servicio
-                            </button>
-                        </div>
+                                <div class="form-row border-top p-top-1" style="margin-bottom: 1rem; gap: 1rem; margin-top: 1.25rem;">
+                                    <div class="form-group" style="grid-column: span 2;">
+                                        <label>Cliente receptor</label>
+                                        <select id="inv-cliente-sel" onchange="autoCompletarCliente(); actualizarLivePreview();" required>
+                                            <option value="">-- Elige un cliente registrado --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>NIF del Cliente</label>
+                                        <input type="text" id="inv-cli-nif" class="bg-gray-200 text-muted" readonly required>
+                                    </div>
+                                </div>
 
-                        <!-- Totales -->
-                        <div class="form-total-box">
-                            <div class="form-total-row">
-                                <span>Suma de Bases (Sin IVA):</span>
-                                <span id="calc-base">0,00 €</span>
-                            </div>
-                            <div class="form-total-row">
-                                <span>IVA total:</span>
-                                <span id="calc-iva">0,00 €</span>
-                            </div>
-                            <div class="form-total-row grand">
-                                <span>Total factura a cobrar:</span>
-                                <span id="calc-total">0,00 €</span>
-                            </div>
-                        </div>
+                                <!-- Ficha interactiva del cliente seleccionado -->
+                                <div class="interactive-client-card" id="client-preview-card" style="display: none; margin-bottom: 1.25rem;">
+                                    <div class="client-avatar-mini" id="client-preview-avatar">C</div>
+                                    <div class="client-info-mini">
+                                        <div class="client-name-mini" id="client-preview-name">Nombre Cliente</div>
+                                        <div class="client-nif-mini" id="client-preview-nif-txt">NIF: B12345678</div>
+                                        <div class="client-addr-mini" id="client-preview-addr">Dirección Fiscal</div>
+                                    </div>
+                                </div>
 
-                        <div class="flex-end flex-gap-1 m-top-2">
-                            <button type="button" class="btn btn-secondary" onclick="setTab('dash')">Cancelar</button>
-                            <button type="submit" class="btn">Firmar y Registrar Factura</button>
+                                <!-- Líneas de factura -->
+                                <div class="border-top p-top-1 m-top-1">
+                                    <label class="d-block m-bottom-05">Conceptos y Líneas de Detalle</label>
+                                    <table class="items-table" style="margin-top: 0.5rem; margin-bottom: 1rem;">
+                                        <thead>
+                                            <tr>
+                                                <th class="w-50">Descripción</th>
+                                                <th class="w-12 text-right">Cant.</th>
+                                                <th class="w-18 text-right">Precio Unit. (€)</th>
+                                                <th class="w-15 text-right">IVA (%)</th>
+                                                <th class="w-10 text-right">Subtotal</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="inv-lines-body">
+                                            <!-- Inserción dinámica de líneas -->
+                                        </tbody>
+                                    </table>
+                                    <button type="button" class="btn btn-secondary font-size-xs" style="padding: 0.45rem 0.9rem; font-size: 0.75rem;" onclick="addInvoiceLine(); actualizarLivePreview();">
+                                        ➕ Añadir Concepto
+                                    </button>
+                                </div>
+
+                                <!-- Totales -->
+                                <div class="form-total-box" style="margin-top: 1rem; padding-top: 1rem;">
+                                    <div class="form-total-row" style="width: 100%; max-width: 250px;">
+                                        <span>Base Imponible:</span>
+                                        <span id="calc-base">0,00 €</span>
+                                    </div>
+                                    <div class="form-total-row" style="width: 100%; max-width: 250px;">
+                                        <span>IVA total:</span>
+                                        <span id="calc-iva">0,00 €</span>
+                                    </div>
+                                    <div class="form-total-row grand" style="width: 100%; max-width: 250px; font-size: 1.15rem; padding-top: 0.5rem; margin-top: 0.25rem;">
+                                        <span>Total Factura:</span>
+                                        <span id="calc-total">0,00 €</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex-end flex-gap-1 m-top-15">
+                                    <button type="button" class="btn btn-secondary" onclick="setTab('dash')">Cancelar</button>
+                                    <button type="submit" class="btn btn-accent">Firmar y Emitir Factura</button>
+                                </div>
+                            </form>
                         </div>
-                    </form>
+                    </div>
+
+                    <!-- COLUMNA DE VISTA PREVIA EN VIVO -->
+                    <div class="invoice-preview-column">
+                        <div class="preview-sticky-container">
+                            <div class="preview-label">Documento Oficial Generado (Live Preview)</div>
+                            
+                            <div class="live-preview-box">
+                                <div class="lp-header">
+                                    <div>
+                                        <div class="lp-company-name" id="lp-emi-name">Mi Negocio S.L.</div>
+                                        <div class="lp-company-nif" id="lp-emi-nif">NIF: A1234567B</div>
+                                        <div class="lp-company-addr" id="lp-emi-addr">Calle de la Tecnología 42</div>
+                                    </div>
+                                    <div class="lp-meta-right">
+                                        <div class="lp-doc-title" id="lp-inv-id">FACTURA F-2026-1</div>
+                                        <div class="lp-doc-date" id="lp-inv-date">Fecha: 10-06-2026</div>
+                                    </div>
+                                </div>
+
+                                <div class="lp-parties">
+                                    <div class="lp-party-title">Cliente / Receptor</div>
+                                    <div class="lp-client-name" id="lp-cli-name">Selecciona un cliente...</div>
+                                    <div class="lp-client-nif" id="lp-cli-nif">NIF: --</div>
+                                    <div class="lp-client-addr" id="lp-cli-addr">Dirección: --</div>
+                                </div>
+
+                                <table class="lp-items-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Concepto</th>
+                                            <th class="text-right">Cant</th>
+                                            <th class="text-right">Precio</th>
+                                            <th class="text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lp-items-body">
+                                        <!-- Líneas dinámicas -->
+                                    </tbody>
+                                </table>
+
+                                <div class="lp-totals-block">
+                                    <div class="lp-total-row">
+                                        <span>Base Imponible:</span>
+                                        <span id="lp-subtotal">0,00 €</span>
+                                    </div>
+                                    <div class="lp-total-row">
+                                        <span>IVA:</span>
+                                        <span id="lp-iva">0,00 €</span>
+                                    </div>
+                                    <div class="lp-total-row lp-grand-total">
+                                        <span>Importe a Cobrar:</span>
+                                        <span id="lp-total">0,00 €</span>
+                                    </div>
+                                </div>
+
+                                <div class="lp-verifactu-block">
+                                    <div class="lp-qr-placeholder">
+                                        <div class="lp-qr-icon">QR</div>
+                                        <span class="lp-qr-text">Auto-generado</span>
+                                    </div>
+                                    <div class="lp-vf-legal-info">
+                                        <div class="lp-vf-tag">SISTEMA VERI*FACTU</div>
+                                        <p class="lp-vf-subtext">Este documento cuenta con una huella digital que garantiza su inalterabilidad y encadenamiento en el registro de la AEAT.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
 
             <!-- ===================================== -->
             <!-- TAB 3: HISTORIAL                      -->
@@ -672,6 +763,101 @@
                                 <button type="submit" class="btn">Registrar y Dar de Alta</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================== -->
+            <!-- TAB: MI PERFIL                        -->
+            <!-- ===================================== -->
+            <div class="tab-pane" id="pane-profile">
+                <div class="profile-layout-grid">
+                    <!-- Columna Izquierda: Información de Usuario -->
+                    <div class="glass-panel" style="flex: 1; margin-bottom: 0; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 2.5rem 2rem;">
+                        <div class="profile-avatar-large" id="profile-avatar-box">BP</div>
+                        <h3 id="profile-full-name" style="font-size: 1.35rem; margin-top: 1rem; font-weight: 800;">Brais Pérez</h3>
+                        <span id="profile-user-email" style="font-size: 0.88rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">braisperezlorenzo@gmail.com</span>
+                        
+                        <div style="margin-top: 1rem;">
+                            <span id="profile-badge-role" class="badge" style="font-size: 0.72rem; padding: 0.3rem 0.75rem; font-weight: 700;">Administrador</span>
+                        </div>
+
+                        <div class="profile-meta-list" style="width: 100%; border-top: 1px solid var(--border-color); margin-top: 2rem; padding-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; text-align: left; font-size: 0.82rem;">
+                            <div class="profile-meta-item" style="display: flex; justify-content: space-between;">
+                                <span class="text-muted">Empresa Activa:</span>
+                                <span class="font-bold" id="profile-company-name">Mi Negocio S.L.</span>
+                            </div>
+                            <div class="profile-meta-item" style="display: flex; justify-content: space-between;">
+                                <span class="text-muted">NIF Emisor:</span>
+                                <span class="font-semibold" id="profile-company-nif">A1234567B</span>
+                            </div>
+                            <div class="profile-meta-item" style="display: flex; justify-content: space-between;">
+                                <span class="text-muted">Último Acceso:</span>
+                                <span class="text-muted" id="profile-last-login">11/06/2026 13:30</span>
+                            </div>
+                            <div class="profile-meta-item" style="display: flex; justify-content: space-between;">
+                                <span class="text-muted">Estado del Certificado:</span>
+                                <span class="text-success font-semibold">● Activo (Válido)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Roles y Permisos de la Suite -->
+                    <div style="flex: 2; display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="glass-panel" style="margin-bottom: 0;">
+                            <h3 class="m-bottom-05">Estadísticas de Trabajo de la Sesión</h3>
+                            <p class="font-size-xs text-muted m-bottom-15">Resumen de tus acciones registradas en el sistema de facturación en la sesión actual.</p>
+                            
+                            <div class="metrics-grid" style="grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 0;">
+                                <div class="metric-card" style="padding: 1.25rem;">
+                                    <span class="metric-title" style="font-size: 0.68rem;">Facturas Emitidas por mí</span>
+                                    <div class="metric-value" id="profile-stats-count" style="font-size: 1.5rem; margin-top: 0.25rem;">0</div>
+                                </div>
+                                <div class="metric-card" style="padding: 1.25rem;">
+                                    <span class="metric-title" style="font-size: 0.68rem;">Importe Registrado por mí</span>
+                                    <div class="metric-value text-accent" id="profile-stats-total" style="font-size: 1.5rem; margin-top: 0.25rem;">0,00 €</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel" style="margin-bottom: 0;">
+                            <h3 class="m-bottom-05">Permisos del Rol SIF (Reglamento Veri*factu)</h3>
+                            <p class="font-size-xs text-muted m-bottom-1">Tu rol actual determina tus privilegios técnicos y el nivel de registro de eventos exigido por Hacienda.</p>
+                            
+                            <div class="table-container">
+                                <table class="data-table" style="font-size: 0.78rem;">
+                                    <thead>
+                                        <tr>
+                                            <th>Módulo o Acción</th>
+                                            <th>Permiso</th>
+                                            <th>Explicación Legal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="font-bold">Emisión de Facturas</td>
+                                            <td><span class="badge badge-success" id="perm-emit">Autorizado</span></td>
+                                            <td class="text-muted">Capacidad para emitir y firmar facturas de alta/anulación en el encadenamiento criptográfico.</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-bold">Edición/Borrado de Historial</td>
+                                            <td><span class="badge badge-error" id="perm-alter" style="background-color: var(--error-light); color: var(--error); border-color: rgba(225,29,72,0.15);">Prohibido por Ley</span></td>
+                                            <td class="text-muted">Prohibición estricta de alteración de registros (Art. 29.2.j LGT). No configurable.</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-bold">Inspección de Logs (Audit Trail)</td>
+                                            <td><span class="badge" id="perm-logs" style="background-color: var(--success-light); color: var(--success); border-color: rgba(5,150,105,0.15);">Autorizado</span></td>
+                                            <td class="text-muted">Acceso de lectura a las huellas digitales SHA-256 de eventos de configuración e inicio de sesión.</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-bold">Configuración de NIF/Datos</td>
+                                            <td><span class="badge" id="perm-config" style="background-color: var(--success-light); color: var(--success); border-color: rgba(5,150,105,0.15);">Autorizado</span></td>
+                                            <td class="text-muted">Gestión de la razón social, dirección y datos fiscales emisores del SIF.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
