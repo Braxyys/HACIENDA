@@ -257,8 +257,11 @@
 
                         <!-- Presets de servicios rápidos -->
                         <div class="glass-panel" style="padding: 1.25rem; margin-bottom: 1.25rem;">
-                            <h4 style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">Conceptos y Servicios Frecuentes</h4>
-                            <div class="flex-wrap flex-gap-05" id="presets-container">
+                            <div class="flex-between m-bottom-05" style="align-items: center; display: flex; justify-content: space-between;">
+                                <h4 style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0; letter-spacing: 0.5px;">Conceptos y Servicios Frecuentes</h4>
+                                <a href="#" onclick="event.preventDefault(); setTab('profile');" style="font-size: 0.72rem; color: var(--primary); font-weight: 600; text-decoration: none;">⚙️ Administrar</a>
+                            </div>
+                            <div class="flex-wrap flex-gap-05" id="presets-container" style="margin-top: 0.5rem;">
                                 <!-- Botones de presets dinámicos -->
                             </div>
                         </div>
@@ -858,6 +861,41 @@
                                 </table>
                             </div>
                         </div>
+
+                        <!-- Conceptos y Servicios Frecuentes -->
+                        <div class="glass-panel" style="margin-bottom: 0;">
+                            <div class="flex-between m-bottom-05" style="align-items: center; display: flex; justify-content: space-between;">
+                                <h3 class="m-bottom-0" style="font-size: 1.05rem; font-weight: 700;">📋 Conceptos y Servicios Frecuentes</h3>
+                                <span class="badge badge-success" id="profile-servicios-count" style="font-size: 0.72rem;">0 guardados</span>
+                            </div>
+                            <p class="font-size-xs text-muted m-bottom-1">Crea tus propios conceptos de facturación habituales para insertarlos rápidamente con un clic en tus nuevas facturas.</p>
+                            
+                            <div class="servicios-grid" id="profile-servicios-grid">
+                                <!-- Dinámico -->
+                            </div>
+                            
+                            <div class="add-servicio-form">
+                                <div class="form-group">
+                                    <label>Nombre del concepto</label>
+                                    <input type="text" id="profile-sf-nombre" placeholder="Ej. Mantenimiento mensual" style="width: 100%;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Precio Unitario (€)</label>
+                                    <input type="number" id="profile-sf-precio" step="0.01" min="0" placeholder="100.00" style="width: 100%;">
+                                </div>
+                                <div class="form-group">
+                                    <label>IVA (%)</label>
+                                    <select id="profile-sf-iva" style="width: 100%;">
+                                        <option value="21">21% (Normal)</option>
+                                        <option value="10">10% (Reducido)</option>
+                                        <option value="4">4% (Superreducido)</option>
+                                        <option value="0">0% (Exento)</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="btn btn-accent" style="padding: 0.5rem 1rem; font-size: 0.78rem; align-self: end;" onclick="guardarServicioFrecuenteDesdeProfile()">➕ Añadir</button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

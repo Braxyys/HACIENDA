@@ -538,6 +538,9 @@
             actualizarDeclaracion();
             await renderVisualChain();
 
+            // Load servicios frecuentes
+            cargarServiciosFrecuentes();
+
             // Apply role-based access policies
             aplicarPoliticasSeguridadRol();
         }
@@ -685,7 +688,10 @@
             document.getElementById('w-title-text').innerText = titles[tab].title;
             document.getElementById('w-title-sub').innerText = titles[tab].sub;
 
-            if (tab === 'profile') renderUserProfileTab();
+            if (tab === 'profile') {
+                renderUserProfileTab();
+                renderServiciosFrecuentesProfile();
+            }
             if (tab === 'emit') prepararFormularioFactura();
             if (tab === 'dash') p1_renderStats();
             if (tab === 'hist') {
@@ -720,7 +726,7 @@
             addInvoiceLine();
 
             calcularImportesFactura();
-            renderPresets();
+            renderServiciosFrecuentes();
             actualizarLivePreview();
         }
 
@@ -1361,26 +1367,47 @@
             });
         }
 
-        // --- NEW PROFESSIONAL UI ENHANCEMENTS ---
+        // --- NEW PROFESSIONAL UI ENHANCEMENTS & CUSTOM SERVICES ---
 
-        const SERVICE_PRESETS = [
-            { label: "Suscripción Mensual", concepto: "Suscripción Plan Mensual Oposiciones", precio: 8.99, iva: 21 },
-            { label: "Consultoría TI", concepto: "Servicios Profesionales de Consultoría Tecnológica", precio: 65.00, iva: 21 },
-            { label: "Desarrollo Web", concepto: "Desarrollo e Integración de Software a Medida", precio: 1200.00, iva: 21 },
-            { label: "Mantenimiento Cloud", concepto: "Soporte y Administración de Servidores en la Nube", precio: 150.00, iva: 21 },
-            { label: "Formación", concepto: "Sesión de Formación Técnica para Personal de Empresa", precio: 450.00, iva: 21 }
+        let serviciosFrecuentes = [];
+
+        const DEFAULT_PRESETS = [
+            { id: "p1", label: "Suscripción Mensual", concepto: "Suscripción Plan Mensual Oposiciones", precio: 8.99, iva: 21 },
+            { id: "p2", label: "Consultoría TI", concepto: "Servicios Profesionales de Consultoría Tecnológica", precio: 65.00, iva: 21 },
+            { id: "p3", label: "Desarrollo Web", concepto: "Desarrollo e Integración de Software a Medida", precio: 1200.00, iva: 21 },
+            { id: "p4", label: "Mantenimiento Cloud", concepto: "Soporte y Administración de Servidores en la Nube", precio: 150.00, iva: 21 },
+            { id: "p5", label: "Formación", concepto: "Sesión de Formación Técnica para Personal de Empresa", precio: 450.00, iva: 21 }
         ];
 
-        function renderPresets() {
+        function cargarServiciosFrecuentes() {
+            const saved = localStorage.getItem('vf_servicios_frecuentes');
+            if (saved) {
+                serviciosFrecuentes = JSON.parse(saved);
+            } else {
+                serviciosFrecuentes = [...DEFAULT_PRESETS];
+                localStorage.setItem('vf_servicios_frecuentes', JSON.stringify(serviciosFrecuentes));
+            }
+        }
+
+        function guardarServiciosFrecuentesStorage() {
+            localStorage.setItem('vf_servicios_frecuentes', JSON.stringify(serviciosFrecuentes));
+        }
+
+        function renderServiciosFrecuentes() {
             const container = document.getElementById('presets-container');
             if (!container) return;
             container.innerHTML = '';
 
-            SERVICE_PRESETS.forEach(preset => {
+            if (serviciosFrecuentes.length === 0) {
+                container.innerHTML = '<span class="text-muted font-size-xs">No hay conceptos guardados. Pulsa Administrar para crear uno.</span>';
+                return;
+            }
+
+            serviciosFrecuentes.forEach(preset => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'preset-badge-btn';
-                btn.innerText = preset.label;
+                btn.innerText = preset.label || preset.concepto;
                 btn.onclick = () => aplicarPreset(preset);
                 container.appendChild(btn);
             });
@@ -1412,7 +1439,78 @@
 
             calcularImportesFactura();
             actualizarLivePreview();
-            showToast(`Preset "${preset.label}" aplicado.`);
+            showToast(`Concepto "${preset.label || preset.concepto}" aplicado.`);
+        }
+
+        function renderServiciosFrecuentesProfile() {
+            const grid = document.getElementById('profile-servicios-grid');
+            const badge = document.getElementById('profile-servicios-count');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            if (badge) badge.innerText = serviciosFrecuentes.length + ' guardados';
+
+            if (serviciosFrecuentes.length === 0) {
+                grid.innerHTML = `
+                    <div class="servicios-empty" style="grid-column: 1 / -1;">
+                        <span class="servicios-empty-icon">📋</span>
+                        No tienes conceptos frecuentes guardados.<br>Crea los tuyos propios para agilizar tu facturación.
+                    </div>
+                `;
+                return;
+            }
+
+            serviciosFrecuentes.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'servicio-card';
+                card.innerHTML = `
+                    <div class="servicio-card-info">
+                        <div class="servicio-card-name">${s.concepto}</div>
+                        <div class="servicio-card-meta">
+                            <span>${s.precio.toLocaleString('es-ES', {minimumFractionDigits: 2})} €</span>
+                            <span>IVA ${s.iva}%</span>
+                        </div>
+                    </div>
+                    <div class="servicio-card-actions">
+                        <button type="button" class="btn-delete-servicio" onclick="eliminarServicioFrecuente('${s.id}')" title="Eliminar">🗑️</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function guardarServicioFrecuenteDesdeProfile() {
+            const nombre = document.getElementById('profile-sf-nombre').value.trim();
+            const precio = parseFloat(document.getElementById('profile-sf-precio').value);
+            const iva = parseInt(document.getElementById('profile-sf-iva').value);
+
+            if (!nombre) { alert('Introduce un nombre para el concepto.'); return; }
+            if (isNaN(precio) || precio < 0) { alert('Introduce un precio válido.'); return; }
+
+            const labelShort = nombre.length > 20 ? nombre.substring(0, 18) + '...' : nombre;
+
+            serviciosFrecuentes.push({
+                id: Date.now().toString(36),
+                label: labelShort,
+                concepto: nombre,
+                precio,
+                iva
+            });
+
+            guardarServiciosFrecuentesStorage();
+
+            document.getElementById('profile-sf-nombre').value = '';
+            document.getElementById('profile-sf-precio').value = '';
+
+            renderServiciosFrecuentesProfile();
+            showToast(`Concepto "${nombre}" guardado.`);
+        }
+
+        function eliminarServicioFrecuente(id) {
+            serviciosFrecuentes = serviciosFrecuentes.filter(s => s.id !== id);
+            guardarServiciosFrecuentesStorage();
+            renderServiciosFrecuentesProfile();
+            showToast('Concepto eliminado.');
         }
 
         function renderUserProfileTab() {
