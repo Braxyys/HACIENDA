@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FacturaFácil - Facturación Veri*factu Inteligente para PYMEs y Autónomos</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --panel-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-color: #334155;
+            --text-muted: #64748b;
+            --dark-slate: #0f172a;
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-glow: rgba(79, 70, 229, 0.15);
+            --accent-cyan: #0891b2;
+            --accent-teal: #059669;
+            --accent-orange: #d97706;
+            --glass-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            justify-content: space-between;
+        }
+
+        /* Navigation Header */
+        nav {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--dark-slate);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+
+        .logo-text h1 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            display: block;
+            margin-top: -3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .btn-sm {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.88rem;
+            border-radius: 10px;
+        }
+
+        /* Hero Section */
+        .hero {
+            max-width: 1200px;
+            width: 100%;
+            margin: 4rem auto 2rem auto;
+            padding: 0 2rem;
+            text-align: center;
+            z-index: 5;
+        }
+
+        .compliance-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-teal);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            padding: 0.4rem 1rem;
+            border-radius: 99px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+        }
+
+        .compliance-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-teal);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .hero h2 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -1px;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #0f172a, #334155, #475569);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero h2 span {
+            background: linear-gradient(to right, var(--primary-light), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 780px;
+            margin: 0 auto 2.5rem auto;
+            line-height: 1.6;
+        }
+
+        .hero-ctas {
+            display: flex;
+            justify-content: center;
+            gap: 1.25rem;
+            margin-bottom: 4rem;
+        }
+
+        /* Features Section */
+        .features-section {
+            max-width: 1200px;
+            width: 100%;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3.5rem;
+        }
+
+        .section-header h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .hero h2 {
+                font-size: 2.8rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-ctas {
+                flex-direction: column;
+                align-items: center;
+            }
+            .hero-ctas .btn {
+                width: 100%;
+                max-width: 320px;
+            }
+        }
+
+        .feature-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.25rem;
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 20px 30px rgba(79, 70, 229, 0.1);
+        }
+
+        .feature-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(79, 70, 229, 0.2);
+        }
+
+        .feature-card h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--dark-slate);
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            max-width: 1200px;
+            width: 100%;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            align-items: stretch;
+        }
+
+        @media (max-width: 900px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                max-width: 500px;
+                margin: 0 auto;
+            }
+        }
+
+        .pricing-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .pricing-card.popular {
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15);
+        }
+
+        .pricing-card.popular::before {
+            content: 'Más Elegido';
+            position: absolute;
+            top: -12px;
+            right: 24px;
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 99px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pricing-header h5 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pricing-price {
+            display: flex;
+            align-items: baseline;
+            gap: 0.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pricing-price .amount {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--dark-slate);
+        }
+
+        .pricing-price .period {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .pricing-card p {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .pricing-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+        }
+
+        .pricing-feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.88rem;
+            color: var(--text-color);
+        }
+
+        .pricing-feature-item::before {
+            content: '✔';
+            color: var(--accent-teal);
+            font-weight: bold;
+        }
+
+        /* Buttons styles */
+        .btn {
+            background: linear-gradient(135deg, var(--primary), #4338ca);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0.85rem 1.75rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn:hover {
+            box-shadow: 0 8px 26px rgba(79, 70, 229, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: #ffffff;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .btn-outline:hover {
+            background: rgba(79, 70, 229, 0.05);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: none;
+            transform: translateY(-1px);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        /* Dev Portal section */
+        .dev-portal-banner {
+            max-width: 1200px;
+            width: 100%;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .dev-panel {
+            background: linear-gradient(135deg, #f1f5f9, #ecfeff);
+            border: 1px solid rgba(8, 145, 178, 0.2);
+            border-radius: 24px;
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 3rem;
+            box-shadow: var(--glass-shadow);
+        }
+
+        @media (max-width: 800px) {
+            .dev-panel {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        .dev-info h4 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--dark-slate);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .dev-info p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        footer {
+            padding: 2.5rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            background: #ffffff;
+            margin-top: 6rem;
+            width: 100%;
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: var(--accent-cyan);
+        }
+
+        /* LOGIN MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .modal-container {
+            width: 100%;
+            max-width: 440px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: modalShow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalShow {
+            from { transform: scale(0.95) translateY(10px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 2rem 2rem 1rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--dark-slate);
+            margin-bottom: 0.35rem;
+        }
+
+        .modal-header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group select, .form-group input {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-group select:focus, .form-group input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .preset-btn {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 10px;
+            padding: 0.5rem;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--primary-light);
+            background-color: rgba(99, 102, 241, 0.05);
+        }
+
+        .preset-btn.active {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }
+
+        .preset-role {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            display: block;
+            margin-top: 0.15rem;
+            text-transform: uppercase;
+            letter-spacing: 0.25px;
+        }
+
+        .preset-btn.active .preset-role {
+            color: rgba(255,255,255,0.75);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Subtle animated aurora glow behind content */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 18% 22%, rgba(79, 70, 229, 0.06), transparent 45%),
+                radial-gradient(circle at 82% 72%, rgba(6, 182, 212, 0.05), transparent 45%),
+                radial-gradient(circle at 55% 100%, rgba(16, 185, 129, 0.04), transparent 50%);
+            animation: auroraDrift 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes auroraDrift {
+            0%   { transform: translate3d(0, 0, 0) scale(1);     opacity: 0.85; }
+            50%  { transform: translate3d(-2%, 1.5%, 0) scale(1.08); opacity: 1; }
+            100% { transform: translate3d(2%, -1.5%, 0) scale(1.04); opacity: 0.9; }
+        }
+
+        /* Keep pricing CTAs aligned at the card bottom */
+        .pricing-card > div:last-child {
+            margin-top: auto;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            body::before { animation: none; }
+            * { scroll-behavior: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <nav>
+        <a href="#" class="logo-area">
+            <div class="logo-icon">F</div>
+            <div class="logo-text">
+                <h1>FacturaFácil</h1>
+                <span>Socio de Facturación para Autónomos</span>
+            </div>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#features" class="nav-link">Características</a></li>
+            <li><a href="#pricing" class="nav-link">Planes</a></li>
+            <li><a href="apps/compliance-suite/index.html" class="nav-link">Desarrolladores</a></li>
+            <li><button class="btn btn-outline btn-sm" onclick="openLoginModal()">Iniciar Sesión</button></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="compliance-badge">Demo del sistema Veri*factu · RD 1007/2023</div>
+        <h2>Facturación Inteligente e Inalterable para <span>PYMEs y Autónomos</span></h2>
+        <p>FacturaFácil te ayuda a cumplir con la Ley Crea y Crece y el reglamento SIF sin complejidades. Emisión instantánea de facturas con código QR, firmas criptográficas encadenadas y registro de auditoría legal.</p>
+        <div class="hero-ctas">
+            <button class="btn" onclick="openLoginModal()">Probar Simulador ERP &rarr;</button>
+            <a href="#features" class="btn btn-outline">Ver Características</a>
+        </div>
+    </header>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="section-header">
+            <h3>Preparado para la Normativa de Hacienda</h3>
+            <p>Todo lo que necesitas para emitir facturas conformes al Real Decreto 1007/2023.</p>
+        </div>
+        <div class="features-grid">
+            <!-- Feature 1 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">🛡️</div>
+                <h4>Encadenamiento Criptográfico</h4>
+                <p>Cada factura emitida contiene el hash de la factura anterior, asegurando la inalterabilidad de tus registros de acuerdo al sistema Veri*factu.</p>
+            </div>
+            <!-- Feature 2 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">📱</div>
+                <h4>Códigos QR Oficiales</h4>
+                <p>Generación automática de códigos QR reglamentarios en PDF/A4 para permitir a tus clientes verificar la validez de la factura en la sede de la AEAT.</p>
+            </div>
+            <!-- Feature 3 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">📄</div>
+                <h4>XML Facturae 3.2.2</h4>
+                <p>Exporta tus facturas al formato estructurado Facturae 3.2.2 (beta), el formato oficial previsto por la Ley Crea y Crece para las transacciones comerciales B2B.</p>
+            </div>
+            <!-- Feature 4 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">📋</div>
+                <h4>Audit Trail Inalterable</h4>
+                <p>Registro automático e inalterable de todos los eventos del sistema, accesos, copias de seguridad y configuraciones para inspecciones tributarias.</p>
+            </div>
+            <!-- Feature 5 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">💼</div>
+                <h4>Agenda de Clientes ERP</h4>
+                <p>Base de datos simplificada para gestionar clientes, datos fiscales y realizar un seguimiento del IVA repercutido y la base imponible acumulada.</p>
+            </div>
+            <!-- Feature 6 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">👥</div>
+                <h4>Multi-usuario con Roles</h4>
+                <p>Control de accesos por perfil (Administrador, Empleado y Auditor de solo lectura) para que cada miembro de tu equipo o tu asesor vea solo lo que le corresponde.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section" id="pricing">
+        <div class="section-header">
+            <h3>Planes Sencillos y Transparentes</h3>
+            <p>Elige la suscripción que mejor se adapte al volumen de tu negocio.</p>
+        </div>
+        <div class="pricing-grid">
+            <!-- Plan 1 -->
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <h5>Autónomo</h5>
+                    <div class="pricing-price">
+                        <span class="amount">9€</span>
+                        <span class="period">/ mes</span>
+                    </div>
+                    <p>Ideal para autónomos individuales que necesitan emitir facturas legales básicas.</p>
+                </div>
+                <div>
+                    <ul class="pricing-features">
+                        <li class="pricing-feature-item">Hasta 50 facturas / mes</li>
+                        <li class="pricing-feature-item">Encadenamiento criptográfico</li>
+                        <li class="pricing-feature-item">Impresión A4 con QR</li>
+                        <li class="pricing-feature-item">Soporte por correo</li>
+                    </ul>
+                    <button class="btn btn-outline btn-full" onclick="openLoginModal()">Comenzar ahora</button>
+                </div>
+            </div>
+            <!-- Plan 2 -->
+            <div class="pricing-card popular">
+                <div class="pricing-header">
+                    <h5>PYME</h5>
+                    <div class="pricing-price">
+                        <span class="amount">19€</span>
+                        <span class="period">/ mes</span>
+                    </div>
+                    <p>Perfecto para pequeñas empresas con volumen de facturación recurrente y multicanal.</p>
+                </div>
+                <div>
+                    <ul class="pricing-features">
+                        <li class="pricing-feature-item">Facturas ilimitadas</li>
+                        <li class="pricing-feature-item">XML Facturae 3.2.2</li>
+                        <li class="pricing-feature-item">Multi-usuario (Roles)</li>
+                        <li class="pricing-feature-item">Descarga de Audit Trail CSV</li>
+                        <li class="pricing-feature-item">Copias de seguridad JSON</li>
+                    </ul>
+                    <button class="btn btn-full" onclick="openLoginModal()">Comenzar ahora</button>
+                </div>
+            </div>
+            <!-- Plan 3 -->
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <h5>Despacho / ERP</h5>
+                    <div class="pricing-price">
+                        <span class="amount">49€</span>
+                        <span class="period">/ mes</span>
+                    </div>
+                    <p>Diseñado para gestorías y empresas medianas con integraciones de sistemas contables externos.</p>
+                </div>
+                <div>
+                    <ul class="pricing-features">
+                        <li class="pricing-feature-item">Múltiples NIFs emisores</li>
+                        <li class="pricing-feature-item">Acceso API Middleware</li>
+                        <li class="pricing-feature-item">Soporte prioritario</li>
+                        <li class="pricing-feature-item">Integraciones contables (en desarrollo)</li>
+                    </ul>
+                    <button class="btn btn-outline btn-full" onclick="openLoginModal()">Contactar ventas</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Developer Section -->
+    <section class="dev-portal-banner">
+        <div class="dev-panel">
+            <div class="dev-info">
+                <h4>¿Eres Desarrollador o Integrador ERP?</h4>
+                <p>Nuestra Suite de Cumplimiento incluye un "Compliance Hub" con API interactiva, enrutador de facturación, logs de firmas y un simulador de alteraciones para comprobar cómo se rompe la cadena criptográfica. Ideal para probar integraciones tributarias externas.</p>
+            </div>
+            <a href="apps/compliance-suite/index.html" class="btn btn-outline">Abrir Hub de Desarrollo &rarr;</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 FacturaFácil — Proyecto demostrativo de software de facturación (Real Decreto 1007/2023). <br>
+        <a href="legal/aviso-legal.html">Aviso Legal</a> · <a href="legal/privacidad.html">Política de Privacidad</a> · <a href="legal/cookies.html">Política de Cookies</a></p>
+    </footer>
+
+    <!-- INTERACTIVE LOGIN MODAL -->
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Iniciar Sesión en FacturaFácil</h3>
+                <p>Elige un perfil preestablecido para simular el comportamiento del ERP bajo distintos roles organizativos.</p>
+            </div>
+            <form onsubmit="ejecutarLogin(event)">
+                <div class="modal-body">
+                    <!-- Presets -->
+                    <div class="form-group">
+                        <label>Perfiles de Simulación</label>
+                        <div class="presets-grid">
+                            <button type="button" class="preset-btn active" onclick="seleccionarPreset('Brais Pérez', 'Administrador', 'cfg-admin')" id="cfg-admin">
+                                Brais Pérez
+                                <span class="preset-role">Admin</span>
+                            </button>
+                            <button type="button" class="preset-btn" onclick="seleccionarPreset('Clara Trilo', 'Empleado', 'cfg-emp')" id="cfg-emp">
+                                Clara Trilo
+                                <span class="preset-role">Empleado</span>
+                            </button>
+                            <button type="button" class="preset-btn" onclick="seleccionarPreset('Inspector AEAT', 'Auditor', 'cfg-audit')" id="cfg-audit">
+                                Insp. AEAT
+                                <span class="preset-role">Auditor</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Manual Fields -->
+                    <div class="form-group">
+                        <label for="usr-name">Nombre Completo</label>
+                        <input type="text" id="usr-name" value="Brais Pérez" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usr-role">Rol en la Empresa</label>
+                        <select id="usr-role">
+                            <option value="Administrador">Administrador (Control total)</option>
+                            <option value="Empleado">Empleado (Contable / Comercial)</option>
+                            <option value="Auditor">Auditor (Inspector de Hacienda)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usr-company">Empresa Emisora</label>
+                        <input type="text" id="usr-company" value="Mi Negocio S.L." readonly style="background-color:#f1f5f9; color:var(--text-muted); cursor:not-allowed;">
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" style="padding:0.6rem 1.2rem;" onclick="closeLoginModal()">Cancelar</button>
+                        <button type="submit" class="btn" style="padding:0.6rem 1.2rem;">Acceder al ERP</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Modal handlers
+        function openLoginModal() {
+            document.getElementById('login-modal').style.display = 'flex';
+        }
+
+        function closeLoginModal() {
+            document.getElementById('login-modal').style.display = 'none';
+        }
+
+        // Preset handler
+        function seleccionarPreset(nombre, rol, btnId) {
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(btnId).classList.add('active');
+
+            document.getElementById('usr-name').value = nombre;
+            document.getElementById('usr-role').value = rol;
+        }
+
+        // Form Submission and redirection
+        function ejecutarLogin(event) {
+            event.preventDefault();
+            const name = document.getElementById('usr-name').value;
+            const role = document.getElementById('usr-role').value;
+            
+            const session = {
+                name: name,
+                role: role,
+                company: "Mi Negocio S.L.",
+                nif: "A1234567B",
+                timestamp: new Date().toISOString()
+            };
+
+            // Save to localStorage so that the ERP app can load it
+            localStorage.setItem('vf_session', JSON.stringify(session));
+
+            // Redirect to FacturaFácil ERP app
+            window.location.href = "apps/facturador-pymes/index.html";
+        }
+
+        // Close modal when clicking outside of the container
+        window.onclick = function(event) {
+            const modal = document.getElementById('login-modal');
+            if (event.target === modal) {
+                closeLoginModal();
+            }
+        }
+    </script>
+</body>
+</html>

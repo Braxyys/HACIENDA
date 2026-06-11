@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacienda Compliance Hub - Demo Suite Multiproducto</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon">H</div>
+            <div class="logo-text">
+                <h1>Hacienda Compliance Suite</h1>
+                <span>Demo Interactiva Multiproducto</span>
+            </div>
+        </div>
+
+        <nav class="nav-tabs">
+            <button class="nav-tab-btn active" onclick="switchTab('tab-saas')">💼 SaaS FacturaFácil</button>
+            <button class="nav-tab-btn" onclick="switchTab('tab-api')">⚡ API Middleware</button>
+            <button class="nav-tab-btn" onclick="switchTab('tab-b2b')">🔄 Portal Crea y Crece</button>
+            <button class="nav-tab-btn" onclick="switchTab('tab-router')">🗺️ Router Fiscal</button>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- ========================================== -->
+        <!-- TAB 1: SAAS FACTURAFÁCIL (VERIFACTU)       -->
+        <!-- ========================================== -->
+        <div id="tab-saas" class="tab-content active">
+            <!-- Form Panel -->
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Emisión de Facturas</h2>
+                        <span class="panel-subtitle">Cumplimiento automático de Veri*factu</span>
+                    </div>
+                    <span class="badge badge-success">SaaS Client Mode</span>
+                </div>
+
+                <form onsubmit="event.preventDefault(); p1_emitirFactura();">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Serie</label>
+                            <input type="text" id="p1-serie" value="VF-2026" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Número Factura</label>
+                            <input type="number" id="p1-numero" value="1" readonly required>
+                        </div>
+                        <div class="form-group">
+                            <label>NIF Cliente</label>
+                            <input type="text" id="p1-cli-nif" placeholder="Ej. B98765432" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Cliente (Razón Social)</label>
+                            <input type="text" id="p1-cli-name" placeholder="Ej. Distribuciones Bahía S.L." required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Concepto</label>
+                            <input type="text" id="p1-concepto" placeholder="Ej. Consultoría tecnológica mensual" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Base Imponible (€)</label>
+                            <input type="number" step="0.01" id="p1-base" placeholder="0.00" oninput="p1_calcular()" required>
+                        </div>
+                        <div class="form-group">
+                            <label>IVA (%)</label>
+                            <select id="p1-iva" onchange="p1_calcular()">
+                                <option value="21">21% General</option>
+                                <option value="10">10% Reducido</option>
+                                <option value="4">4% Superreducido</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" style="width:100%; margin-top:1.5rem;">
+                        Firmar y Registrar (VeriFactu)
+                    </button>
+                </form>
+
+                <div class="flex-col" style="gap:0.5rem; margin-top:0.5rem;">
+                    <label>Estructura JSON remitida a la AEAT:</label>
+                    <div class="console" id="p1-console">// Completa los campos y firma una factura para ver el esquema JSON regulado...</div>
+                </div>
+            </div>
+
+            <!-- Preview Panel -->
+            <div class="flex-col">
+                <div class="glass-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2 class="panel-title">Vista Impresa Factura</h2>
+                            <span class="panel-subtitle">Inclusión de Leyenda y Código QR</span>
+                        </div>
+                    </div>
+
+                    <div class="invoice-card">
+                        <div class="invoice-card-header">
+                            <div>
+                                <div class="invoice-card-logo"><div style="width:8px; height:8px; background:#6366f1; border-radius:50%;"></div>Juan Pérez Lorenzo S.L.</div>
+                                <div style="font-size:0.7rem; color:#64748b; margin-top:0.25rem;">NIF: A1234567B | Madrid, España</div>
+                            </div>
+                            <div class="text-right">
+                                <h3 style="font-weight:800; font-size:1.1rem; color:#0f172a;" id="p1-view-num">FACTURA # -</h3>
+                                <div style="font-size:0.7rem; color:#64748b;" id="p1-view-date">Fecha: --/--/----</div>
+                            </div>
+                        </div>
+
+                        <div class="invoice-card-details">
+                            <div>
+                                <div style="font-weight:700; color:#64748b; font-size:0.65rem; text-transform:uppercase;">Receptor</div>
+                                <div id="p1-view-cli-name" style="font-weight:600;">Nombre del Cliente</div>
+                                <div id="p1-view-cli-nif" style="color:#64748b;">NIF: -</div>
+                            </div>
+                        </div>
+
+                        <table style="width:100%; border-collapse:collapse; margin: 0.5rem 0;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid #e2e8f0; color:#64748b;">
+                                    <th style="background:transparent; color:#64748b; padding:0.25rem 0;">Descripción</th>
+                                    <th class="text-right" style="background:transparent; color:#64748b; padding:0.25rem 0;">Base</th>
+                                    <th class="text-right" style="background:transparent; color:#64748b; padding:0.25rem 0;">IVA</th>
+                                    <th class="text-right" style="background:transparent; color:#64748b; padding:0.25rem 0;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom:1px solid #f1f5f9;">
+                                    <td id="p1-view-concepto" style="padding:0.5rem 0; color:#334155;">Introduce datos...</td>
+                                    <td id="p1-view-base" class="text-right" style="padding:0.5rem 0; color:#334155;">0.00 €</td>
+                                    <td id="p1-view-iva" class="text-right" style="padding:0.5rem 0; color:#334155;">21%</td>
+                                    <td id="p1-view-total" class="text-right" style="padding:0.5rem 0; font-weight:600; color:#334155;">0.00 €</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="invoice-totals">
+                            <div class="total-row"><span>Base Imponible:</span><span id="p1-tot-base">0.00 €</span></div>
+                            <div class="total-row"><span>IVA:</span><span id="p1-tot-iva">0.00 €</span></div>
+                            <div class="total-row grand-total"><span>Total Factura:</span><span id="p1-tot-grand">0.00 €</span></div>
+                        </div>
+
+                        <!-- Verifactu QR -->
+                        <div class="verifactu-block" id="p1-verifactu-block" style="opacity: 0.3;">
+                            <div class="qr-placeholder" id="p1-qr">QR VERIFACTU</div>
+                            <div>
+                                <span class="badge" style="background:#0f172a; color:white; border-radius:4px; font-size:0.6rem; padding:0.1rem 0.3rem;">VERI*FACTU</span>
+                                <div style="font-weight:700; font-size:0.7rem; color:#0f172a; margin-top:0.15rem;">Factura verificable en la sede electrónica de la AEAT</div>
+                                <div style="font-family:monospace; font-size:0.6rem; color:#64748b; background:#f1f5f9; padding:0.2rem; border-radius:4px; margin-top:0.25rem; word-break:break-all;" id="p1-view-hash">Huella: Ninguna factura firmada aún</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel" style="padding:1.5rem;">
+                    <div class="panel-title" style="font-size:1rem; border:none; padding:0;">Libro Registro Criptográfico (Sesión)</div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Cliente</th>
+                                    <th>Total</th>
+                                    <th>Huella Anterior</th>
+                                    <th>Huella Factura</th>
+                                </tr>
+                            </thead>
+                            <tbody id="p1-ledger">
+                                <tr><td colspan="5" style="text-align:center; color:var(--text-muted); font-size:0.75rem;">No se han emitido facturas.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: API MIDDLEWARE (PLAYGROUND)         -->
+        <!-- ========================================== -->
+        <div id="tab-api" class="tab-content">
+            <!-- API Request -->
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">API Playground para ERPs</h2>
+                        <span class="panel-subtitle">Simulación de integración por JSON Web API</span>
+                    </div>
+                    <span class="badge badge-info">Developer API Endpoint</span>
+                </div>
+
+                <div class="flex-col" style="gap:0.75rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; background:#0f172a; padding:0.75rem; border-radius:8px; border:1px solid #1e293b;">
+                        <span style="background:var(--success); color:white; font-weight:800; font-size:0.7rem; padding:0.25rem 0.5rem; border-radius:4px;">POST</span>
+                        <span style="font-family:monospace; font-size:0.8rem; font-weight:600; color:white;">https://api.verifactulink.es/v1/facturas</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Headers (Simulados)</label>
+                        <textarea id="p2-headers" style="font-family:monospace; font-size:0.75rem; min-height:60px;" readonly>
+Content-Type: application/json
+Authorization: Bearer key_lorenzo_corp_2026_test
+X-Emisor-NIF: A1234567B</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cuerpo de la Petición (Factura JSON enviada por ERP)</label>
+                        <textarea id="p2-body" style="font-family:monospace; font-size:0.75rem; min-height:180px; color:#0f172a;">{
+  "serie": "ERP-B",
+  "numero": 105,
+  "fecha": "2026-06-04",
+  "cliente_nif": "B87654321",
+  "cliente_razon_social": "Suministros Lorenzo S.A.",
+  "base_imponible": 850.00,
+  "tipo_iva": 21.00,
+  "concepto": "Licencias de software de base de datos"
+}</textarea>
+                    </div>
+
+                    <button class="btn btn-cyan" onclick="p2_enviarAPI()" style="width:100%;">
+                        Ejecutar POST /v1/facturas
+                    </button>
+                </div>
+            </div>
+
+            <!-- API Response -->
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Respuesta del Middleware</h2>
+                        <span class="panel-subtitle">JSON firmado y verificado para la AEAT</span>
+                    </div>
+                </div>
+
+                <div class="flex-col" style="gap:1rem;">
+                    <div class="form-group">
+                        <label>Código de Respuesta HTTP</label>
+                        <div id="p2-status" style="font-family:monospace; font-weight:700; font-size:0.85rem; color:var(--text-muted);">Sin ejecutar petición...</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Cuerpo de Respuesta (JSON Middleware)</label>
+                        <div class="console" id="p2-console" style="min-height:240px; color:#38bdf8;">// Haz clic en "Ejecutar POST" para realizar la llamada al middleware...</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Código QR de Hacienda devuelto por API:</label>
+                        <div style="background:#f8fafc; border:1px dashed var(--border-color); border-radius:12px; height:120px; display:flex; align-items:center; justify-content:center;" id="p2-qr-container">
+                            <span style="font-size:0.8rem; color:var(--text-muted);">Esperando llamada...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: PORTAL CREA Y CRECE (B2B)           -->
+        <!-- ========================================== -->
+        <div id="tab-b2b" class="tab-content">
+            <!-- B2B Invoices Ledger -->
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Facturas B2B e Intercambio</h2>
+                        <span class="panel-subtitle">Cumplimiento de la Ley Crea y Crece (Formatos y Estados)</span>
+                    </div>
+                    <span class="badge badge-warning">Crea y Crece B2B Portal</span>
+                </div>
+
+                <div class="flex-col" style="gap:1rem;">
+                    <div class="b2b-invoice-list" id="p3-list">
+                        <!-- Items cargados dinámicamente -->
+                    </div>
+
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                        <h4 style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.5rem;">Generador Rápido de Factura B2B</h4>
+                        <div class="grid-2col">
+                            <input type="text" id="p3-cli" value="Bahía Frutas S.L.">
+                            <input type="number" id="p3-base" value="1200.00" step="0.01">
+                        </div>
+                        <button class="btn btn-teal" style="width:100%; margin-top:0.75rem; font-size:0.8rem; padding:0.6rem;" onclick="p3_generarB2B()">
+                            Generar XML Facturae e Insertar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PSD2 Bank Feed Simulation -->
+            <div class="flex-col">
+                <div class="glass-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2 class="panel-title">Simulador de Conciliación PSD2</h2>
+                            <span class="panel-subtitle">Conexión Bancaria para auto-reporte de fecha de pago</span>
+                        </div>
+                    </div>
+
+                    <p style="font-size:0.8rem; color:var(--text-muted);">
+                        La ley exige que indiques el estado de cobro/pago. Esta sección simula la importación automática de transferencias bancarias mediante APIs de Open Banking (PSD2).
+                    </p>
+
+                    <div class="flex-col" style="gap:0.75rem;">
+                        <div class="bank-feed-item">
+                            <div>
+                                <div style="font-size:0.85rem; font-weight:700; color:var(--dark-slate);">Transferencia Recibida</div>
+                                <div style="font-size:0.7rem; color:var(--text-muted);">Remitente: Distribuciones Bahía S.L.</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-size:0.9rem; font-weight:800; color:var(--success);">+1.452,00 €</div>
+                                <button class="btn" style="font-size:0.7rem; padding:0.3rem 0.6rem; margin-top:0.25rem; border-radius:6px;" onclick="p3_conciliar(1, 1452)">Conciliar PSD2</button>
+                            </div>
+                        </div>
+
+                        <div class="bank-feed-item">
+                            <div>
+                                <div style="font-size:0.85rem; font-weight:700; color:var(--dark-slate);">Transferencia Recibida</div>
+                                <div style="font-size:0.7rem; color:var(--text-muted);">Remitente: Bahía Frutas S.L.</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-size:0.9rem; font-weight:800; color:var(--success);">+1.452,00 €</div>
+                                <button class="btn" style="font-size:0.7rem; padding:0.3rem 0.6rem; margin-top:0.25rem; border-radius:6px;" onclick="p3_conciliar(3, 1452)">Conciliar PSD2</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel" style="padding:1.5rem;">
+                    <div class="panel-title" style="font-size:1rem; border:none; padding:0;">Formato Estructurado Oficial XML (Facturae)</div>
+                    <div class="console" id="p3-xml-console" style="font-size:0.7rem; height:180px; color:#a7f3d0;">// Selecciona una factura B2B para inspeccionar su estructura de XML estructurado...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: ROUTER FISCAL MULTITERRITORIAL     -->
+        <!-- ========================================== -->
+        <div id="tab-router" class="tab-content">
+            <!-- Router configuration -->
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Mapeador Fiscal Inteligente</h2>
+                        <span class="panel-subtitle">Enrutador inteligente según zona geográfica y volumen de ventas</span>
+                    </div>
+                </div>
+
+                <form onsubmit="event.preventDefault(); p4_enrutamiento();" class="flex-col" style="gap:1.25rem;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Provincia Emisor</label>
+                            <select id="p4-provincia">
+                                <option value="MADRID">Madrid (Comunidad de Madrid)</option>
+                                <option value="BIZKAIA">Vizcaya / Bizkaia (País Vasco)</option>
+                                <option value="GIPUZKOA">Guipúzcoa / Gipuzkoa (País Vasco)</option>
+                                <option value="ALAVA">Álava / Araba (País Vasco)</option>
+                                <option value="BARCELONA">Barcelona (Cataluña)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Código Postal</label>
+                            <input type="text" id="p4-cp" value="28001" placeholder="Ej. 48001 para Bilbao">
+                        </div>
+                        <div class="form-group full-width" style="flex-direction:row; justify-content:space-between; align-items:center; background:#f8fafc; padding:0.75rem 1rem; border-radius:10px; border:1px solid var(--border-color);">
+                            <div>
+                                <label style="display:block; margin-bottom:0.1rem;">¿Obligado a declarar el SII?</label>
+                                <span style="font-size:0.7rem; color:var(--text-muted);">Empresas con facturación > 6M€ anuales</span>
+                            </div>
+                            <input type="checkbox" id="p4-sii" style="width:20px; height:20px; cursor:pointer;">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-cyan" style="width:100%;">
+                        Calcular Ruta Tributaria y Destino
+                    </button>
+                </form>
+            </div>
+
+            <!-- Routing flow representation -->
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Resultados del Enrutador</h2>
+                        <span class="panel-subtitle">Destino del registro y envoltura de envío</span>
+                    </div>
+                </div>
+
+                <div class="flex-col" style="gap:1rem;">
+                    <div class="grid-2col" style="gap:1rem;">
+                        <div class="routing-node" id="node-verifactu">
+                            <h4 style="font-size:0.85rem; font-weight:700;">AEAT Veri*factu</h4>
+                            <span style="font-size:0.65rem; color:var(--text-muted);">General España (JSON/HTTPS)</span>
+                        </div>
+                        <div class="routing-node" id="node-sii">
+                            <h4 style="font-size:0.85rem; font-weight:700;">AEAT SII</h4>
+                            <span style="font-size:0.65rem; color:var(--text-muted);">Grandes Empresas (SOAP/XML)</span>
+                        </div>
+                        <div class="routing-node" id="node-tbai-biz">
+                            <h4 style="font-size:0.85rem; font-weight:700;">TicketBAI Bizkaia</h4>
+                            <span style="font-size:0.65rem; color:var(--text-muted);">Diputación de Vizcaya (LROE)</span>
+                        </div>
+                        <div class="routing-node" id="node-tbai-gip">
+                            <h4 style="font-size:0.85rem; font-weight:700;">TicketBAI Gipuzkoa</h4>
+                            <span style="font-size:0.65rem; color:var(--text-muted);">Diputación de Guipúzcoa (AS4/XML)</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Diagnóstico de Enrutamiento</label>
+                        <div id="p4-diagnostic" style="font-size:0.8rem; background:#f1f5f9; padding:0.75rem; border-radius:8px; border:1px solid var(--border-color); color:var(--text-color);">
+                            Esperando cálculo de enrutamiento...
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Endpoint Destino Requerido</label>
+                        <div id="p4-endpoint" style="font-family:monospace; font-size:0.75rem; background:#0f172a; padding:0.5rem; border-radius:6px; color:#38bdf8;">
+                            --
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="notification" id="toast">
+        <span id="toast-message">Mensaje de notificación.</span>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Hacienda Compliance Master Suite. Diseñado e implementado con fines demostrativos según normativas vigentes en España.</p>
+    </footer>
+
+    <script src="app.js" defer></script>
+</body>
+</html>

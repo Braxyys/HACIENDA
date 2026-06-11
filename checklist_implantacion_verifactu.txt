@@ -1,0 +1,149 @@
+================================================================================
+ ANALISIS COMPETITIVO Y CHECKLIST DE IMPLANTACION VERI*FACTU
+ Basado en el modelo de Softwariza3 (Partner Wolters Kluwer) vs FacturaFácil
+================================================================================
+
+Este documento analiza la propuesta de valor del competidor Softwariza3 y define
+la hoja de ruta ("checklist") de lo que debe hacer nuestra empresa (FacturaFácil)
+para competir en el mercado de cumplimiento de la Ley de Fraude (Veri*factu)
+y la Ley Crea y Crece.
+
+--------------------------------------------------------------------------------
+ 1. ¿QUÉ APORTA LA WEB DE SOFTWARIZA3? (ANÁLISIS DEL COMPETIDOR)
+--------------------------------------------------------------------------------
+
+Softwariza3 es un distribuidor oficial (Gold Partner) de Wolters Kluwer en España,
+que comercializa las soluciones a3 (a3factura, a3innuva ERP y a3ERP). Su estrategia
+comercial para captar clientes ante la llegada de Veri*factu no es solo vender
+"licencias de software", sino ofrecer "tranquilidad y digitalización" mediante:
+
+1.  Acompañamiento Integral y Onboarding:
+    *   No te dejan solo con el software. Te guían en la implantación paso a paso.
+2.  Recursos Formativos Exclusivos:
+    *   Ofrecen vídeos, guías y materiales rápidos para resolver dudas fiscales.
+3.  Posicionamiento de Confianza Legal:
+    *   Destacan su condición de "Colaborador Social de la AEAT (Convenio 017)",
+        lo que les aporta gran reputación institucional.
+4.  Subvención Kit Digital:
+    *   Ofrecen el software 100% financiado a través de los bonos del Kit Digital.
+
+Debilidad del Competidor para Micropymes/Autónomos:
+Las soluciones a3 de Wolters Kluwer son herramientas corporativas potentes pero
+complejas, caras y pensadas en gran medida para que el flujo termine en el
+despacho del asesor contable. Tienen curvas de aprendizaje empinadas para un 
+comerciante, carpintero, pintor o profesional independiente que solo quiere hacer
+sus facturas en un minuto sin saber contabilidad.
+
+--------------------------------------------------------------------------------
+ 2. HOJA DE RUTA PARA NUESTRA EMPRESA (¿QUÉ DEBEMOS HACER?)
+--------------------------------------------------------------------------------
+
+Para competir con éxito, debemos estructurar nuestro proyecto en tres áreas
+clave: Producto, Legal y Marketing/Ventas.
+
+[ ] HOJA DE RUTA 1: REQUISITOS DE PRODUCTO (SOFTWARE)
+    *   [ ] Generación de Huella/Hash SHA-256: Completado. La app encadena cada
+            factura a la anterior de forma inalterable.
+    *   [ ] Inclusión de Leyenda y Código QR: Completado. Genera la URL de la AEAT
+            y la convierte en un código QR legible.
+    *   [ ] Registro de Eventos (Event Logs): Debemos implementar un registro
+            interno inalterable en el software que guarde cuándo se abre la app,
+            cuándo se intenta modificar algo y cuándo se imprimen facturas.
+    *   [ ] Formato Estructurado XML: Integrar la exportación del archivo en
+            formato XML facturae para cumplir con la Ley Crea y Crece.
+
+[ ] HOJA DE RUTA 2: REQUISITOS LEGALES (OBLIGATORIOS PARA VENDER)
+    *   [ ] Declaración Responsable del Fabricante:
+            Por ley (RD 1007/2023), es ilegal comercializar un software de
+            facturación que no cuente con una "Declaración Responsable" escrita.
+            Debemos emitir un certificado PDF firmado digitalmente que declare
+            que "FacturaFácil" cumple con los requisitos del Reglamento SIF.
+            (Ver plantilla adjunta al final de este documento).
+    *   [ ] Certificación del Software:
+            Mantenernos al día con las especificaciones del BOE para asegurar
+            que los endpoints de la AEAT están mapeados en nuestro middleware.
+
+[ ] HOJA DE RUTA 3: ESTRATEGIA COMERCIAL Y DE VENTAS
+    *   [ ] Registro como Agente Digitalizador:
+            Debemos dar de alta nuestra SL en Red.es para poder cobrar a través
+            del "Kit Digital". Esto nos permitirá ofrecer FacturaFácil GRATIS
+            para el cliente (nosotros cobramos directamente de la subvención).
+    *   [ ] Formación y Lenguaje Sencillo (Nuestro superpoder):
+            A diferencia de los ERPs tradicionales que usan términos complejos,
+            debemos destacar nuestra "Guía Explicativa para no Tecnológicos"
+            y vender la extrema sencillez de la app.
+    *   [ ] Alianza con Asesorías (B2B2C):
+            En lugar de competir con los gestores, debemos ofrecerles un portal
+            donde puedan descargar el libro de registro criptográfico de sus
+            clientes autónomos en un solo clic, ahorrándoles picar datos.
+
+--------------------------------------------------------------------------------
+ 3. CHECKLIST PARA NUESTROS CLIENTES (PYMES Y AUTÓNOMOS)
+--------------------------------------------------------------------------------
+
+Cuando vendamos o instalemos FacturaFácil en una pyme o autónomo, esta es la
+lista de comprobación que deben completar para estar 100% en regla:
+
+Fase 1: Preparación Interna
+*   [ ] Auditoría de Procesos: Confirmar si el emisor realiza ventas a cliente
+        final (tiques/simplificadas) o B2B (facturas completas).
+*   [ ] Alta de Datos de Empresa: Configurar el NIF, Razón Social y dirección
+        correcta en la pestaña "🛠️ Datos de Mi Empresa".
+
+Fase 2: Transición Tecnológica
+*   [ ] Carga de Clientes Habituales: Registrar la agenda fiscal en la pestaña
+        "Mis Clientes" para evitar introducir datos a mano y cometer errores.
+*   [ ] Carga del Historial anterior (Opcional): Si hay facturas previas en el
+        trimestre, registrarlas para no romper la correlación numérica.
+
+Fase 3: Operación en Modo Seguro (Veri*factu)
+*   [ ] Emisión de la Factura Génesis: La primera factura del sistema se
+        encadena automáticamente al bloque cero (Genesis Hash).
+*   [ ] Verificación del QR: Imprimir o generar el primer PDF y escanear el QR
+        con un móvil para comprobar que redirige a la sede de pruebas de la AEAT.
+*   [ ] Firma de la Declaración Responsable: Entregar al cliente la declaración
+        responsable firmada por nosotros. El cliente debe conservarla por si
+        tiene una inspección tributaria.
+
+--------------------------------------------------------------------------------
+ APÉNDICE: MODELO OFICIAL DE DECLARACIÓN RESPONSABLE
+--------------------------------------------------------------------------------
+
+DECLARACIÓN RESPONSABLE DE CONFORMIDAD DEL SISTEMA DE INFORMACIÓN DE FACTURACIÓN
+(Reglamento SIF - Real Decreto 1007/2023)
+
+D. [Nombre del Administrador], con NIF [NIF Administrador], en representación de 
+la entidad [Nombre de nuestra Empresa S.L.], con NIF [NIF Empresa] y domicilio 
+fiscal en [Dirección fiscal de la Empresa], en su calidad de productor y
+comercializador del software de facturación.
+
+DECLARA BAJO SU EXCLUSIVA RESPONSABILIDAD:
+
+Que el sistema de información de facturación (SIF) denominado "FacturaFácil", 
+en su versión 1.0 y siguientes, cumple con todos y cada uno de los requisitos 
+establecidos en el artículo 29.2.j) de la Ley 58/2003, de 17 de diciembre, 
+General Tributaria y en el Reglamento que establece los requisitos que deben 
+adoptar los sistemas y programas informáticos o electrónicos que soporten los 
+procesos de facturación de empresarios y profesionales, aprobado por el 
+Real Decreto 1007/2023, de 5 de diciembre.
+
+Específicamente, se garantiza que el sistema:
+1.  Asegura la integridad, conservación, accesibilidad, legibilidad, trazabilidad
+    e inalterabilidad de los registros de facturación sin brechas de omisión.
+2.  Genera un registro de facturación de alta y, en su caso, de anulación, por
+    cada operación, de forma síncrona.
+3.  Implementa un encadenamiento criptográfico secuencial (huella SHA-256) entre
+    los registros de facturación generados.
+4.  Permite la legibilidad del registro de facturación por parte de la Agencia
+    Tributaria e incluye el correspondiente código QR y leyenda Veri*factu
+    en los documentos expedidos.
+
+Y para que conste a los efectos oportunos ante los usuarios del sistema y la
+Administración Tributaria, se firma la presente declaración responsable en:
+
+En Madrid, a 10 de junio de 2026.
+
+Firmado digitalmente:
+[Nombre del Administrador]
+Representante de [Nombre de nuestra Empresa S.L.]
+================================================================================

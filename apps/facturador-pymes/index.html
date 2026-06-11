@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FacturaFácil - Facturación Oficial Adaptada (Veri*factu)</title>
+    <!-- Google Fonts: Inter para máxima legibilidad y aspecto limpio/institucional -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon">F</div>
+            <div class="logo-text">
+                <h1>FacturaFácil</h1>
+                <span>Socio de facturación para autónomos</span>
+            </div>
+        </div>
+        <div class="header-badge">
+            <div class="header-badge-dot"></div>
+            <span>Conexión AEAT: Modo Pruebas Activo</span>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- SIDEBAR MENÚ CLARO -->
+        <aside>
+            <ul class="menu-list">
+                <li><button class="menu-item-btn active" id="m-dash" onclick="setTab('dash')">📊 Inicio y Estadísticas</button></li>
+                <li><button class="menu-item-btn" id="m-demo" onclick="setTab('demo')">💡 Demo Academia Online 2026</button></li>
+                <li><button class="menu-item-btn" id="m-emit" onclick="setTab('emit')">📝 Hacer Nueva Factura</button></li>
+                <li><button class="menu-item-btn" id="m-hist" onclick="setTab('hist')">📂 Historial de Facturas</button></li>
+                <li><button class="menu-item-btn" id="m-clie" onclick="setTab('clie')">👥 Mis Clientes</button></li>
+                <li><button class="menu-item-btn" id="m-users" onclick="setTab('users')">👥 Gestión de Usuarios</button></li>
+                <li><button class="menu-item-btn" id="m-conf" onclick="setTab('conf')">🛠️ Datos de Mi Empresa</button></li>
+                <li><button class="menu-item-btn" id="m-cert" onclick="setTab('cert')">🛡️ Certificación y Auditoría</button></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-title" id="side-comp-name">Mi Negocio S.L.</div>
+                <span id="side-comp-nif" class="m-bottom-05 d-block">NIF: A1234567B</span>
+
+                <div class="session-info-box border-top p-top-05 m-top-05">
+                    <div style="font-weight: 700; font-size: 0.68rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.15rem;">Sesión Activa:</div>
+                    <div id="side-user-name" class="font-bold text-success" style="font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Brais Pérez</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem;">
+                        <span id="side-user-role" class="badge" style="font-size: 0.55rem; padding: 0.15rem 0.4rem; background-color: var(--primary-light); color: var(--primary); font-weight: 700;">Administrador</span>
+                        <a href="#" class="logout-link" onclick="logoutSession(event)" style="font-size: 0.68rem; color: var(--error); text-decoration: none; font-weight: 600;">🚪 Salir</a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- WORKSPACE -->
+        <div class="workspace">
+            <div class="workspace-header">
+                <h2 id="w-title-text">Inicio y Estadísticas</h2>
+                <p id="w-title-sub">Visualiza el resumen financiero de tu negocio adaptado al reglamento Veri*factu.</p>
+            </div>
+
+            <!-- ===================================== -->
+            <!-- TAB 1: DASHBOARD                      -->
+            <!-- ===================================== -->
+            <div class="tab-pane active" id="pane-dash">
+                <!-- Banner dinámico para la Demo -->
+                <div class="info-alert alert-success" id="demo-active-banner" style="display: none;">
+                    <strong>✨ Datos de Ejemplo Activos:</strong> Se han cargado 19 facturas de la simulación de <strong>Academia Online 2026</strong>. Puedes ver su análisis criptográfico y la tabla original en la pestaña <a href="#" onclick="event.preventDefault(); setTab('demo');">💡 Demo Academia Online 2026</a>.
+                </div>
+
+                <div class="info-alert">
+                    <strong>💡 Información Útil para el Negocio:</strong> Esta aplicación te ayuda a cumplir con la nueva ley de Hacienda. Cada vez que emites una factura, el sistema calcula una huella digital que encadena tus operaciones de forma inalterable y genera el <strong>Código QR obligatorio</strong>. Esto demuestra que tus cuentas son transparentes y te evita multas.
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <span class="metric-title">Facturado este trimestre</span>
+                        <div class="metric-value" id="stat-base">0,00 €</div>
+                        <span class="metric-desc">Ingresos sin contar el IVA</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">IVA Repercutido acumulado</span>
+                        <div class="metric-value text-accent" id="stat-iva">0,00 €</div>
+                        <span class="metric-desc">Dinero del IVA a declarar en el trimestre</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">Facturas Emitidas</span>
+                        <div class="metric-value" id="stat-count">0</div>
+                        <span class="metric-desc">Todas registradas legalmente</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel">
+                    <div class="flex-between m-bottom-1">
+                        <h3>Últimas facturas del trimestre</h3>
+                        <button class="btn btn-secondary font-size-xs" onclick="setTab('hist')">Ver todas</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Factura Nº</th>
+                                    <th>Fecha de Emisión</th>
+                                    <th>Cliente</th>
+                                    <th>Importe Total (Con IVA)</th>
+                                    <th>Huella del Registro</th>
+                                    <th>Estado legal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-recent-table">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- METRICAS GRAFICAS DEL DASHBOARD -->
+                <div class="glass-panel" id="dash-charts-panel">
+                    <div class="flex-between m-bottom-15">
+                        <h3>Métricas de Facturación y Carga Fiscal</h3>
+                        <span class="badge badge-success">Actualizado en Tiempo Real</span>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <span class="chart-title">IVA Repercutido por Tipo Impositivo (Sujeto a Veri*factu)</span>
+                            <div class="bar-chart">
+                                <div class="bar-row">
+                                    <span class="bar-label">Normal (21%)</span>
+                                    <div class="bar-wrapper"><div class="bar-fill" id="chart-bar-21" style="width: 0%; background-color: var(--primary);"></div></div>
+                                    <span class="bar-val" id="chart-val-21">0,00 €</span>
+                                </div>
+                                <div class="bar-row">
+                                    <span class="bar-label">Reducido (10%)</span>
+                                    <div class="bar-wrapper"><div class="bar-fill" id="chart-bar-10" style="width: 0%; background-color: var(--accent);"></div></div>
+                                    <span class="bar-val" id="chart-val-10">0,00 €</span>
+                                </div>
+                                <div class="bar-row">
+                                    <span class="bar-label">Superred. (4%)</span>
+                                    <div class="bar-wrapper"><div class="bar-fill" id="chart-bar-4" style="width: 0%; background-color: #06b6d4;"></div></div>
+                                    <span class="bar-val" id="chart-val-4">0,00 €</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <span class="chart-title">Distribución del Estado Legal de Facturas</span>
+                            <div class="distribution-circle-box">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:0.75rem;">
+                                    <span class="font-semibold text-success">✔ Firmado y Encadenado (AEAT):</span>
+                                    <span id="chart-dist-firmado" class="font-bold">100%</span>
+                                </div>
+                                <div class="bar-wrapper" style="height: 12px; border-radius: 6px;"><div class="bar-fill" id="chart-dist-bar" style="width: 100%; background-color: var(--success); height: 100%; border-radius: 6px;"></div></div>
+                                <p class="font-size-xxs text-muted m-top-05">Todas las facturas registradas en la base de datos se encuentran firmadas digitalmente y encadenadas criptográficamente de forma secuencial.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================== -->
+            <!-- TAB: DEMO OPOSERGAS 2026              -->
+            <!-- ===================================== -->
+            <div class="tab-pane" id="pane-demo">
+                <div class="info-alert">
+                    <strong>💡 Caso Práctico Academia Online 2026:</strong> Esta sección detalla el procesamiento de los 19 registros de facturas reales importados desde el archivo <code>oposergas_facturas_2026.csv</code>. Aquí puedes observar cómo la aplicación los firma y encadena criptográficamente según la ley.
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <span class="metric-title">Facturas Importadas</span>
+                        <div class="metric-value">19</div>
+                        <span class="metric-desc">Registros cargados de Academia Online</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">Suma de Bases</span>
+                        <div class="metric-value">131,24 €</div>
+                        <span class="metric-desc">Importe neto total</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">IVA Repercutido (21%)</span>
+                        <div class="metric-value text-accent">27,57 €</div>
+                        <span class="metric-desc">IVA total acumulado</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">Total Bruto Cobrado</span>
+                        <div class="metric-value text-success">158,81 €</div>
+                        <span class="metric-desc">Importe total con IVA</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel">
+                    <h3 class="m-bottom-1">Acciones de Control de la Demo</h3>
+                    <p class="font-size-sm text-muted m-bottom-1">Utiliza estos botones para gestionar el estado de los datos del ejemplo en el navegador.</p>
+                    <div class="flex-wrap flex-gap-1">
+                        <button class="btn" onclick="restaurarDemoAcademia()">
+                            📥 Restaurar Datos Academia Online 2026
+                        </button>
+                        <button class="btn btn-secondary" onclick="setTab('hist')">
+                            📂 Ir al Historial Criptográfico
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-panel">
+                    <h3 class="m-bottom-1">Datos Originales del CSV vs Registro Veri*factu</h3>
+                    <p class="font-size-sm text-muted m-bottom-1">A continuación se muestra el listado original de registros leídos del archivo CSV antes de procesarse en la cadena criptográfica inalterable.</p>
+                    <div class="data-table-container">
+                        <table class="data-table font-size-xs">
+                            <thead>
+                                <tr>
+                                    <th>Nº Factura</th>
+                                    <th>Fecha y Hora</th>
+                                    <th>Email Cliente</th>
+                                    <th>Nombre Fiscal</th>
+                                    <th>Base (€)</th>
+                                    <th>IVA (€)</th>
+                                    <th>Total (€)</th>
+                                    <th>Estado Chaining</th>
+                                </tr>
+                            </thead>
+                            <tbody id="demo-csv-table-body">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="glass-panel">
+                    <h3 class="m-bottom-05">¿Cómo funciona el Encadenamiento Veri*factu aquí?</h3>
+                    <p class="font-size-sm m-bottom-1">
+                        El reglamento exige que cada registro de facturación contenga la firma digital (huella/hash) de la factura actual combinada con los datos de la factura anterior. Esto crea una cadena inalterable:
+                    </p>
+                    <div class="font-mono font-size-xs p-top-1 border-top" style="background-color:var(--bg-color); border:1px solid var(--border-color); border-radius:10px; padding:1rem; line-height:1.5;">
+                        <strong>Paso 1 (Génesis):</strong> La primera factura emitida en el tiempo (<code>OPS-2026-0004</code> el 17/04/2026) se encadena con un hash inicial de ceros: <br>
+                        <code>Huella Anterior: 0000000000000000000000000000000000000000000000000000000000000000</code><br><br>
+                        <strong>Paso 2 (Encadenamiento):</strong> El sistema concatena: <br>
+                        <code>NIF_Emisor | Nº_Factura | Fecha | Importe_Total | Huella_Anterior</code><br>
+                        Y genera el hash SHA-256 único de esa factura.<br><br>
+                        <strong>Paso 3 (Siguientes):</strong> La siguiente factura cronológica (<code>OPS-2026-0003</code> el 20/04/2026) incluye la huella generada en el Paso 2 como su <code>Huella Anterior</code>, y así sucesivamente hasta la última factura (<code>OPS-2026-0019</code>).
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================== -->
+            <!-- TAB 2: EMITIR FACTURA                 -->
+            <!-- ===================================== -->
+            <div class="tab-pane" id="pane-emit">
+                <div class="info-alert">
+                    <strong>Paso 1:</strong> Selecciona un cliente de la lista. Si no lo has registrado aún, ve a la pestaña <strong>"Mis Clientes"</strong>. <br>
+                    <strong>Paso 2:</strong> Añade las líneas de los servicios prestados con su descripción e importe. La numeración de la factura se asigna sola para que no cometas errores de correlación.
+                </div>
+
+                <div class="glass-panel">
+                    <form onsubmit="event.preventDefault(); emitirNuevaFactura();">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Serie de Facturación</label>
+                                <input type="text" id="inv-serie" value="F-2026" required>
+                                <span class="form-help">Ej. F-2026 para facturas normales</span>
+                            </div>
+                            <div class="form-group">
+                                <label>Número asignado</label>
+                                <input type="number" id="inv-numero" class="bg-gray-200 text-muted" value="1" readonly required>
+                                <span class="form-help">Asignado de forma correlativa automática</span>
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha de emisión</label>
+                                <input type="date" id="inv-fecha" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row border-top p-top-125">
+                            <div class="form-group grid-span-2">
+                                <label>Cliente receptor</label>
+                                <select id="inv-cliente-sel" onchange="autoCompletarCliente()" required>
+                                    <option value="">-- Elige un cliente registrado --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>NIF del Cliente</label>
+                                <input type="text" id="inv-cli-nif" class="bg-gray-200 text-muted" readonly required>
+                            </div>
+                        </div>
+
+                        <!-- Líneas de factura -->
+                        <div class="border-top p-top-125 m-top-15">
+                            <label class="d-block m-bottom-05">Líneas de la Factura (Servicios o Productos)</label>
+                            <table class="items-table">
+                                <thead>
+                                    <tr>
+                                        <th class="w-50">Descripción del concepto</th>
+                                        <th class="w-12 text-right">Cantidad</th>
+                                        <th class="w-15 text-right">Precio Unitario (€)</th>
+                                        <th class="w-13 text-right">IVA (%)</th>
+                                        <th class="w-10 text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inv-lines-body">
+                                    <!-- Inserción dinámica de líneas -->
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-secondary font-size-xs" onclick="addInvoiceLine()">
+                                ➕ Añadir otra línea de servicio
+                            </button>
+                        </div>
+
+                        <!-- Totales -->
+                        <div class="form-total-box">
+                            <div class="form-total-row">
+                                <span>Suma de Bases (Sin IVA):</span>
+                                <span id="calc-base">0,00 €</span>
+                            </div>
+                            <div class="form-total-row">
+                                <span>IVA total:</span>
+                                <span id="calc-iva">0,00 €</span>
+                            </div>
+                            <div class="form-total-row grand">
+                                <span>Total factura a cobrar:</span>
+                                <span id="calc-total">0,00 €</span>
+                            </div>
+                        </div>
+
+                        <div class="flex-end flex-gap-1 m-top-2">
+                            <button type="button" class="btn btn-secondary" onclick="setTab('dash')">Cancelar</button>
+                            <button type="submit" class="btn">Firmar y Registrar Factura</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ===================================== -->
+            <!-- TAB 3: HISTORIAL                      -->
+            <!-- ===================================== -->
+            <div class="tab-pane" id="pane-hist">
+                <div class="glass-panel">
+                    <div class="flex-between m-bottom-15">
+                        <h3>Historial de todas tus facturas</h3>
+                        <button class="btn btn-danger font-size-xs" onclick="borrarDatosPrueba()">
+                            ⚠️ Vaciar Base de Datos
+                        </button>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nº Factura</th>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Base (€)</th>
+                                    <th>IVA (€)</th>
+                                    <th>Total Cobrado</th>
+                                    <th>Huella Anterior</th>
+                                    <th>Huella Factura (SHA-256)</th>
+                                    <th>Opciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hist-table-body">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Simulación de Integridad Criptográfica -->
+                <div class="glass-panel m-top-15">
+                    <div class="flex-between border-bottom p-bottom-075 m-bottom-1">
+                        <div>
+                            <h3>Inspección y Seguridad Criptográfica de la Cadena</h3>
+                            <p class="font-size-xs text-muted m-top-025">Representación en vivo de las huellas de tus facturas encadenadas. Cualquier alteración de datos romperá la cadena al instante.</p>
+                        </div>
+                        <div class="flex-gap-05 no-print">
+                            <button class="btn btn-secondary btn-warning-light font-size-xs" style="padding:0.4rem 0.8rem;" onclick="abrirModalTamper()">⚡ Simular Alteración (Hacker Mode)</button>
+                            <button class="btn btn-secondary btn-success-light font-size-xs" id="btn-revert-tamper" style="padding:0.4rem 0.8rem; display:none;" onclick="restaurarIntegridad()">🛡️ Reconstruir Cadena (Reparar)</button>
+                        </div>
+                    </div>
+
+                    <!-- Alerta de Cadena Rota -->
+                    <div class="info-alert alert-danger" id="chain-broken-alert" style="display:none; margin-bottom:1.5rem;">
+                        <strong>⚠️ BRECHA DE SEGURIDAD DETECTADA:</strong> Se han alterado datos en la base de datos local de forma externa. La huella digital ya no coincide con el encadenamiento criptográfico. El sistema Veri*factu reportará la incoherencia síncronamente a Hacienda.
+                    </div>
+
+                    <!-- Contenedor Visual de la Cadena -->
+                    <div id="visual-chain-container" class="visual-chain-wrapper">
+                        <!-- Bloques generados dinámicamente en JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================== -->
+            <!-- TAB 4: CLIENTES                       -->
+            <!-- ===================================== -->
+            <div class="tab-pane" id="pane-clie">
+                <div class="glass-panel">
+                    <h3 style="font-size:1.05rem; font-weight:700; margin-bottom:1rem;">Añadir un Cliente Nuevo</h3>
+                    <form onsubmit="event.preventDefault(); guardarNuevoCliente();">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nombre del Cliente o Razón Social</label>
+                                <input type="text" id="cli-razon" placeholder="Ej. Juan Gómez y Asociados S.L." required>
+                            </div>
+                            <div class="form-group">
+                                <label>NIF del Cliente</label>
+                                <input type="text" id="cli-nif" placeholder="Ej. B12345678" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Dirección Fiscal (Calle, Código Postal, Ciudad)</label>
+                                <input type="text" id="cli-dir" placeholder="Ej. Calle Mayor 14, 28001, Madrid" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Correo Electrónico de contacto</label>
+                                <input type="email" id="cli-email" placeholder="cliente@correo.com">
+                            </div>
+                        </div>
+                        <div style="display:flex; justify-content:flex-end; margin-top:1rem;">
+                            <button type="submit" class="btn">Registrar Cliente</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="glass-panel">
+                    <h3 style="font-size:1.05rem; font-weight:700; margin-bottom:1rem;">Lista de Clientes Guardados</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre / Empresa</th>
+                                    <th>NIF</th>
+                                    <th>Dirección Fiscal</th>
+                                    <th>Email</th>
+                                    <th>Opciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clients-table-body">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================== -->
+            <!-- TAB 5: CONFIGURACION                  -->
+            <!-- ===================================== -->
+            <div class="tab-pane" id="pane-conf">
+                <div class="glass-panel">
+                    <h3 style="font-size:1.05rem; font-weight:700; margin-bottom:1rem;">Datos Oficiales de Tu Negocio (Emisor)</h3>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1.5rem;">Introduce los datos de tu empresa. Aparecerán de forma automática en la cabecera de todas las facturas que crees.</p>
+                    <form onsubmit="event.preventDefault(); guardarConfiguracion();">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tu Nombre o Razón Social</label>
+                                <input type="text" id="cfg-razon" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Tu NIF o CIF</label>
+                                <input type="text" id="cfg-nif" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Dirección Postal (Sede)</label>
+                                <input type="text" id="cfg-dir" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Código Postal</label>
+                                <input type="text" id="cfg-cp" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Ciudad</label>
+                                <input type="text" id="cfg-ciudad" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono de contacto</label>
+                                <input type="text" id="cfg-tel">
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; margin-top:2rem;">
+                            <button type="submit" class="btn">Guardar Datos de Mi Empresa</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="glass-panel panel-secondary m-top-15">
+                    <h4 class="font-semibold m-bottom-05">Copia de Seguridad y Restauración</h4>
+                    <p class="font-size-xs text-muted m-bottom-1">Dado que los datos se guardan de forma local en este navegador, se recomienda realizar copias de seguridad periódicas para no perder tu historial de facturación ni la trazabilidad criptográfica ante una limpieza de caché.</p>
+                    <div class="flex-wrap flex-gap-1">
+                        <button class="btn btn-secondary" onclick="exportarBaseDatosJSON()">📥 Exportar Base de Datos (Backup JSON)</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('import-file-input').click()">📤 Importar Base de Datos (Restaurar JSON)</button>
+                        <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importarBaseDatosJSON(event)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================== -->
+            <!-- TAB: CERTIFICACION Y AUDITORIA        -->
+            <!-- ===================================== -->
+            <div class="tab-pane" id="pane-cert">
+                <div class="info-alert">
+                    <strong>🛡️ Certificación Obligatoria SIF (Reglamento Veri*factu):</strong> 
+                    Según el Real Decreto 1007/2023, todo software de facturación comercializado debe disponer de una Declaración Responsable del fabricante que acredite su conformidad con la normativa y mantener un registro de eventos (trazabilidad) inalterable.
+                </div>
+
+                <div class="glass-panel">
+                    <h3 class="m-bottom-1">Progreso de Cumplimiento Legal (Checklist)</h3>
+                    <div class="d-flex flex-column gap-05 font-size-xs">
+                        <label class="flex-align-center flex-gap-05 font-normal">
+                            <input type="checkbox" checked disabled class="w-auto m-0">
+                            <span><strong>Registro de facturación:</strong> Generación automática del registro de facturación de alta al emitir.</span>
+                        </label>
+                        <label class="flex-align-center flex-gap-05 font-normal">
+                            <input type="checkbox" checked disabled class="w-auto m-0">
+                            <span><strong>Encadenamiento Criptográfico:</strong> Encadenamiento secuencial inalterable mediante hash SHA-256 de facturas.</span>
+                        </label>
+                        <label class="flex-align-center flex-gap-05 font-normal">
+                            <input type="checkbox" checked disabled class="w-auto m-0">
+                            <span><strong>Código QR y Leyenda:</strong> Impresión del código QR oficial y la leyenda "Factura verificable en la sede electrónica de la AEAT o VERI*FACTU".</span>
+                        </label>
+                        <label class="flex-align-center flex-gap-05 font-normal">
+                            <input type="checkbox" checked id="chk-log-status" disabled class="w-auto m-0">
+                            <span><strong>Registro de Eventos (Audit Trail):</strong> Almacenamiento seguro e inalterable de los accesos, configuraciones y acciones del sistema.</span>
+                        </label>
+                        <label class="flex-align-center flex-gap-05 font-normal">
+                            <input type="checkbox" checked disabled class="w-auto m-0">
+                            <span><strong>Declaración Responsable:</strong> Documento del fabricante que certifica la conformidad del software.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="glass-panel" id="decl-printable-area">
+                    <div class="flex-between border-bottom p-bottom-075 m-bottom-1 no-print">
+                        <h3>Declaración Responsable del Fabricante</h3>
+                        <button class="btn btn-secondary font-size-xs" onclick="imprimirDeclaracionResponsable()">🖨️ Imprimir Declaración</button>
+                    </div>
+                    
+                    <div class="declaration-box" style="padding:1.5rem; background-color:#fafafa; border:1px solid #e2e8f0; border-radius:8px; font-size:0.85rem; line-height:1.6; color:#334155;">
+                        <h4 style="text-align:center; font-weight:800; font-size:0.95rem; margin-bottom:1.5rem; color:var(--primary); text-transform:uppercase;">
+                            Declaración Responsable de Conformidad del Sistema de Información de Facturación<br>
+                            <span style="font-size:0.75rem; font-weight:normal; color:var(--text-muted);">(Reglamento SIF - Real Decreto 1007/2023)</span>
+                        </h4>
+                        
+                        <p style="margin-bottom:1rem;">
+                            D. <strong>Brais Pérez Lorenzo</strong>, con NIF <strong>34592437T</strong>, en representación de la entidad <strong>FacturaFácil S.L.</strong>, con NIF <strong>B88776655</strong> y domicilio fiscal en <strong>Calle de la Tecnología 42, Vigo, Pontevedra</strong>, en su calidad de productor y comercializador del software de facturación.
+                        </p>
+                        
+                        <p style="margin-bottom:1rem; font-weight:700; color:var(--primary); text-transform:uppercase; font-size:0.8rem; letter-spacing:0.5px;">
+                            Declara bajo su exclusiva responsabilidad:
+                        </p>
+                        
+                        <p style="margin-bottom:1rem;">
+                            Que el sistema de información de facturación (SIF) denominado <strong>"FacturaFácil"</strong>, en su versión 1.0 y siguientes, cumple con todos y cada uno de los requisitos establecidos en el artículo 29.2.j) de la Ley 58/2003, de 17 de diciembre, General Tributaria y en el Reglamento que establece los requisitos que deben adoptar los sistemas y programas informáticos o electrónicos que soporten los procesos de facturación de empresarios y profesionales, aprobado por el Real Decreto 1007/2023, de 5 de diciembre.
+                        </p>
+                        
+                        <p style="margin-bottom:1rem;">
+                            Específicamente, se garantiza que el sistema adaptado para la empresa <strong id="decl-user-company">--</strong> con NIF <strong id="decl-user-nif">--</strong>:
+                        </p>
+                        
+                        <ol style="margin-left:1.5rem; margin-bottom:1.5rem; display:flex; flex-direction:column; gap:0.5rem;">
+                            <li>Asegura la integridad, conservación, accesibilidad, legibilidad, trazabilidad e inalterabilidad de los registros de facturación sin brechas de omisión.</li>
+                            <li>Genera un registro de facturación de alta y de anulación por cada operación, de forma síncrona y segura.</li>
+                            <li>Implementa un encadenamiento criptográfico secuencial (huella SHA-256) entre los registros de facturación generados.</li>
+                            <li>Permite la legibilidad del registro de facturación por parte de la Agencia Tributaria e incluye el correspondiente código QR y leyenda Veri*factu en los documentos expedidos.</li>
+                        </ol>
+                        
+                        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:2rem; border-top:1px solid #e2e8f0; padding-top:1rem;">
+                            <div>
+                                <p>En Vigo, a 10 de junio de 2026.</p>
+                                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Emitido y firmado por FacturaFácil S.L.</p>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-family:'Courier New', monospace; font-size:0.75rem; border:1px dashed var(--primary); padding:0.5rem; background-color:#fff; border-radius:4px; display:inline-block;">
+                                    <span style="color:var(--primary); font-weight:bold;">FIRMADO DIGITALMENTE</span><br>
+                                    <span style="font-size:0.65rem; color:var(--text-muted);">ID: FF-2026-SIF-VERIFACTU</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel">
+                    <h3 class="m-bottom-05">Registro de Eventos de Auditoría (Audit Trail)</h3>
+                    <p class="font-size-sm text-muted m-bottom-1">Este log es de solo lectura y registra todas las acciones relevantes que afectan al cumplimiento legal del software, encadenadas criptográficamente para evitar su alteración.</p>
+                    
+                    <div class="flex-between flex-wrap flex-gap-1 m-bottom-1 no-print">
+                        <div class="flex-gap-05" style="flex:1; max-width:420px;">
+                            <input type="text" id="audit-filter-input" placeholder="Buscar por acción o descripción..." class="font-size-sm w-100" oninput="filtrarAuditLog()" style="flex:2;">
+                            <select id="audit-filter-type" class="font-size-sm w-100" onchange="filtrarAuditLog()" style="flex:1;">
+                                <option value="">-- Todos --</option>
+                                <option value="INICIO">INICIO</option>
+                                <option value="SESION_INICIO">SESION_INICIO</option>
+                                <option value="FACTURA_EMITIDA">FACTURA_EMITIDA</option>
+                                <option value="CLIENTE_REGISTRADO">CLIENTE_REGISTRADO</option>
+                                <option value="CLIENTE_ELIMINADO">CLIENTE_ELIMINADO</option>
+                                <option value="CONFIG_GUARDADA">CONFIG_GUARDADA</option>
+                                <option value="RESET_DATOS">RESET_DATOS</option>
+                                <option value="RESTAURAR_DEMO">RESTAURAR_DEMO</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-secondary font-size-sm" onclick="exportarAuditLogCSV()">📥 Descargar Log CSV</button>
+                    </div>
+
+                    <div class="data-table-container">
+                        <table class="data-table" style="font-size:0.75rem;">
+                            <thead>
+                                <tr>
+                                    <th style="width:120px;">Fecha y Hora</th>
+                                    <th style="width:100px;">Evento</th>
+                                    <th>Descripción de la Acción</th>
+                                    <th style="width:140px;">Huella del Evento (SHA-256)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-log-table-body">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================== -->
+            <!-- TAB: GESTION DE USUARIOS              -->
+            <!-- ===================================== -->
+            <div class="tab-pane" id="pane-users">
+                <div class="info-alert">
+                    <strong>👥 Gestión de Personal y Roles SIF:</strong> Define los perfiles y permisos de tu equipo. El sistema Veri*factu audita de forma obligatoria qué usuario emite cada factura o realiza cualquier modificación de configuración, garantizando la trazabilidad.
+                </div>
+
+                <div class="form-row" style="align-items: flex-start;">
+                    <div class="glass-panel" style="flex: 1.5; margin-bottom: 0;">
+                        <h3 class="m-bottom-1">Usuarios Registrados en el Sistema</h3>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre Completo</th>
+                                        <th>Rol Organizativo</th>
+                                        <th>Permisos SIF</th>
+                                        <th>Estado</th>
+                                        <th class="role-restricted">Opciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body">
+                                    <!-- Dinámico -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel role-restricted" style="flex: 1; margin-bottom: 0;" id="user-creation-panel">
+                        <h3 class="m-bottom-1">Añadir Nuevo Usuario</h3>
+                        <form onsubmit="event.preventDefault(); guardarNuevoUsuario();" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div class="form-group">
+                                <label for="new-usr-name">Nombre Completo</label>
+                                <input type="text" id="new-usr-name" placeholder="Ej. Pedro Picapiedra" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-usr-role">Rol en el ERP</label>
+                                <select id="new-usr-role">
+                                    <option value="Administrador">Administrador</option>
+                                    <option value="Empleado">Empleado (Contable/Comercial)</option>
+                                    <option value="Auditor">Auditor (Inspector AEAT)</option>
+                                </select>
+                            </div>
+                            <div class="flex-end m-top-05">
+                                <button type="submit" class="btn">Registrar y Dar de Alta</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===================================== -->
+    <!-- PREVIEW INVOICE A4 MODAL OVERLAY      -->
+    <!-- ===================================== -->
+    <div class="modal-overlay" id="invoice-modal">
+        <div class="modal-container">
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="cerrarPreviewFactura()">❌ Cerrar Vista Previa</button>
+                <button class="btn btn-secondary btn-success-light" id="btn-modal-xml">📄 Descargar XML Facturae</button>
+                <button class="btn btn-accent" onclick="window.print()">🖨️ Imprimir / Guardar en PDF</button>
+            </div>
+
+            <!-- A4 Document Page -->
+            <div class="printable-invoice" id="invoice-print-area">
+                <div class="print-header">
+                    <div class="print-logo-area">
+                        <div class="print-logo-name" id="p-emi-razon">Mi Empresa S.L.</div>
+                        <div class="print-logo-nif" id="p-emi-nif">NIF: -</div>
+                        <div class="text-muted font-size-xs m-top-025" id="p-emi-addr">Calle Gran Vía 45, Madrid</div>
+                    </div>
+                    <div class="print-invoice-meta">
+                        <h3 id="p-fac-num">FACTURA Nº -</h3>
+                        <p id="p-fac-date">Fecha: --/--/----</p>
+                    </div>
+                </div>
+
+                <div class="print-parties">
+                    <div>
+                        <div class="print-party-title">Cliente / Receptor</div>
+                        <div class="print-party-name" id="p-cli-razon">Distribuciones Bahía S.L.</div>
+                        <div class="text-muted" id="p-cli-nif">NIF: B98765432</div>
+                        <div class="text-muted font-size-xs m-top-025" id="p-cli-addr">Calle Bahía 10, Vigo, Pontevedra</div>
+                    </div>
+                </div>
+
+                <table class="print-items-table">
+                    <thead>
+                        <tr>
+                            <th>Concepto / Descripción del servicio</th>
+                            <th class="text-right">Cantidad</th>
+                            <th class="text-right">Precio Unitario</th>
+                            <th class="text-right">IVA %</th>
+                            <th class="text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="p-table-body">
+                        <!-- Líneas cargadas -->
+                    </tbody>
+                </table>
+
+                <div class="print-totals">
+                    <div class="print-total-row">
+                        <span>Base Imponible:</span>
+                        <span id="p-subtotal">0,00 €</span>
+                    </div>
+                    <div class="print-total-row">
+                        <span>IVA Repercutido:</span>
+                        <span id="p-iva">0,00 €</span>
+                    </div>
+                    <div class="print-total-row grand">
+                        <span>Total Factura:</span>
+                        <span id="p-total">0,00 €</span>
+                    </div>
+                </div>
+
+                <div class="print-verifactu-container">
+                    <div id="p-qr-box">
+                        <div class="qr-placeholder">QR VERIFACTU</div>
+                    </div>
+                    <div class="print-vf-legal">
+                        <div class="print-vf-badge">VERI*FACTU</div>
+                        <div class="print-vf-text">Factura verificable en la sede electrónica de la AEAT</div>
+                        <div class="text-muted font-bold font-size-xxs m-top-015">HUELLA DIGITAL / HASH ENCADENADO:</div>
+                        <div class="print-vf-hash" id="p-hash">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================== -->
+    <!-- TAMPER INVOICE (HACKER) MODAL OVERLAY -->
+    <!-- ===================================== -->
+    <div class="modal-overlay" id="tamper-modal">
+        <div class="modal-container" style="max-width: 450px;">
+            <div class="glass-panel" style="margin-bottom:0; background-color:white; border-color:var(--border-color); box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+                <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                    <h3 style="font-size:1.1rem; font-weight:700; color:var(--error);">⚡ Simular Alteración de Base de Datos</h3>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.15rem;">Modifica el importe de un registro guardado para verificar si la cadena de hashes de Hacienda detecta la alteración.</p>
+                </div>
+                
+                <form onsubmit="event.preventDefault(); aplicarAlteracionDatos();" style="display:flex; flex-direction:column; gap:1rem;">
+                    <div class="form-group">
+                        <label>Seleccionar Factura a Alterar</label>
+                        <select id="tamper-inv-select" required style="width:100%;" onchange="actualizarImporteOriginalTamper()">
+                            <!-- Cargado dinámicamente -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Importe Original (€)</label>
+                        <input type="text" id="tamper-import-original" readonly style="background-color:#e2e8f0; color:var(--text-muted); width:100%;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Nuevo Importe Alterado (€)</label>
+                        <input type="number" step="0.01" id="tamper-import-alterado" placeholder="Ej. 1.00 para evadir impuestos" required style="width:100%;">
+                        <span style="font-size:0.68rem; color:var(--text-muted); margin-top:0.15rem;">Al cambiar este valor, simularás la modificación maliciosa directa del archivo o base de datos.</span>
+                    </div>
+                    
+                    <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem;">
+                        <button type="button" class="btn btn-secondary" onclick="cerrarModalTamper()">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Simular Hackeo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="notification" id="toast">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-success"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="toast-message">Notificación</span>
+    </div>
+
+    <script src="app.js" defer></script>
+</body>
+</html>
