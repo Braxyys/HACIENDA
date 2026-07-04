@@ -1,3 +1,19 @@
+// --- Helpers de seguridad (auditoria 2026-07) ---
+        function escapeHtml(v){return String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+        function renderQrLocal(el, data, sizePx){
+            if(!el) return;
+            try{
+                const qr = qrcode(0,'M'); qr.addData(data); qr.make();
+                el.innerHTML = qr.createSvgTag({scalable:true, margin:2});
+                const svg = el.querySelector('svg');
+                if(svg){ svg.style.width=sizePx+'px'; svg.style.height=sizePx+'px'; }
+            }catch(e){ el.innerHTML=''; }
+        }
+        function buildDemoQrUrl(nif, numserie, fecha, importe, hash){
+            const base = window.location.origin + window.location.pathname.replace(/apps\/.*$/,'') + 'verificacion-demo.html';
+            return `${base}?nif=${encodeURIComponent(nif)}&numserie=${encodeURIComponent(numserie)}&fecha=${encodeURIComponent(fecha)}&importe=${encodeURIComponent(importe)}&hash=${encodeURIComponent(hash)}`;
+        }
+
 // Global State & Session Ledgers
         const p1_ledger = [];
         const GENESIS_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
@@ -90,7 +106,7 @@
             // Generate hashes
             const ultHash = p1_ledger.length > 0 ? p1_ledger[p1_ledger.length - 1].hashFactura : GENESIS_HASH;
             const dateStr = new Date().toISOString().split('T')[0];
-            const concatStr = `A1234567B|${serie}-${numero}|${dateStr}|${total.toFixed(2)}|${ultHash}`;
+            const concatStr = `A12345674|${serie}-${numero}|${dateStr}|${total.toFixed(2)}|${ultHash}`;
             const hashFactura = await sha256(concatStr);
 
             // Add to session ledger
@@ -110,12 +126,12 @@
             document.getElementById('p1-verifactu-block').style.opacity = "1";
             
             // Build QR Image API
-            const qrUrl = `https://www2.agenciatributaria.gob.es/wlpl/TBAI-VFCT/QR?nif=A1234567B&numserie=${serie}-${numero}&fecha=${dateStr}&importe=${total.toFixed(2)}&hash=${hashFactura}`;
-            document.getElementById('p1-qr').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(qrUrl)}" style="width:80px;height:80px;" alt="QR Code">`;
+            const qrUrl = buildDemoQrUrl("A12345674", `${serie}-${numero}`, dateStr, total.toFixed(2), hashFactura);
+            renderQrLocal(document.getElementById('p1-qr'), qrUrl, 80);
 
             // Render output payload
             const jsonSchema = {
-                "Cabecera": { "ObligadoEmisor": "A1234567B", "Version": "1.0" },
+                "Cabecera": { "ObligadoEmisor": "A12345674", "Version": "1.0" },
                 "RegistroFactura": {
                     "IdFactura": { "SerieNumero": factura.id, "FechaExpedicion": dateStr },
                     "DetalleOperacion": { "BaseImponible": base.toFixed(2), "IVATipo": iva, "ImporteTotal": total.toFixed(2) },
@@ -182,9 +198,9 @@
                 const total = base + (base * (iva / 100));
 
                 const dateStr = data.fecha || new Date().toISOString().split('T')[0];
-                const fakeHash = await sha256(`A1234567B|${data.serie}-${data.numero}|${dateStr}|${total.toFixed(2)}|${GENESIS_HASH}`);
+                const fakeHash = await sha256(`A12345674|${data.serie}-${data.numero}|${dateStr}|${total.toFixed(2)}|${GENESIS_HASH}`);
                 
-                const qrUrl = `https://www2.agenciatributaria.gob.es/wlpl/TBAI-VFCT/QR?nif=A1234567B&numserie=${data.serie}-${data.numero}&fecha=${dateStr}&importe=${total.toFixed(2)}&hash=${fakeHash}`;
+                const qrUrl = buildDemoQrUrl("A12345674", `${data.serie}-${data.numero}`, dateStr, total.toFixed(2), fakeHash);
 
                 const responseObj = {
                     "status": "success",
@@ -205,7 +221,7 @@
                 };
 
                 consoleBox.innerText = JSON.stringify(responseObj, null, 2);
-                qrBox.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(qrUrl)}" style="width:100px; height:100px;" alt="API QR">`;
+                renderQrLocal(qrBox, qrUrl, 100);
                 showToast("Llamada API simulada con éxito.");
 
             } catch (err) {
@@ -266,11 +282,11 @@
   </FileHeader>
   <Parties>
     <SellerParty>
-      <TaxIdentificationNumber>A1234567B</TaxIdentificationNumber>
+      <TaxIdentificationNumber>A12345674</TaxIdentificationNumber>
       <CorporateName>Juan Pérez Lorenzo S.L.</CorporateName>
     </SellerParty>
     <BuyerParty>
-      <TaxIdentificationNumber>B87654321</TaxIdentificationNumber>
+      <TaxIdentificationNumber>B87654323</TaxIdentificationNumber>
       <CorporateName>${inv.cliente}</CorporateName>
     </BuyerParty>
   </Parties>
