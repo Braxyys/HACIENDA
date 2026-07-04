@@ -13,7 +13,10 @@ El proyecto se organiza en una arquitectura limpia, modular y estática de la si
 ```
 / (raíz del proyecto)
 ├── index.html                   <-- Landing page SaaS comercial de FacturaFácil + Modal de Login
-├── legal/                       <-- Aviso legal, privacidad y cookies (LSSI-CE / RGPD) [completar titular]
+├── legal/                       <-- Aviso legal, privacidad y cookies (LSSI-CE / RGPD) [completar NIF/dirección]
+├── verificacion-demo.html       <-- Página propia a la que apuntan los QR (nunca la sede real de la AEAT)
+├── LICENSE                      <-- Licencia propietaria (todos los derechos reservados)
+├── assets/                      <-- Tipografías auto-alojadas y librería QR local (sin terceros)
 ├── README.md                    <-- Esta guía explicativa del repositorio
 ├── .gitignore                   <-- Archivos excluidos de control de versiones
 ├── apps/                        <-- Aplicaciones frontend de la suite
@@ -39,6 +42,10 @@ El proyecto se organiza en una arquitectura limpia, modular y estática de la si
     ├── presentacion_hacienda_facil.pptx
     └── presentacion_hacienda_visual.pptx
 
+> 🔒 **Saneamiento (jul 2026):** QR generados en local (sin api.qrserver.com), fuentes auto-alojadas (sin Google Fonts),
+> escapado XSS/XML en todos los renders, validación de NIF/CIF con dígito de control, QR apuntando a página de
+> verificación demo propia y CI que bloquea regresiones de privacidad.
+>
 > ⚠️ **Naturaleza del proyecto:** esta suite es una **demo comercial** (frontend estático con `localStorage`).
 > No es todavía un Sistema Informático de Facturación conforme al RD 1007/2023: para comercializarlo como tal
 > es obligatorio implementar la huella, QR y registro de eventos según la **Orden HAC/1177/2024** en un backend

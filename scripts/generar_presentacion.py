@@ -21,10 +21,12 @@ def crear_presentacion():
     BLANCO = RGBColor(255, 255, 255)
     VERDE = RGBColor(21, 128, 61)
 
-    # Rutas de imágenes autogeneradas
-    # Intenta buscar la imagen localmente o usa una ruta por defecto
-    img_cadena = r"C:\Users\BRAIS\.gemini\antigravity\brain\abd2e431-f669-4796-a0bd-da6198329b9d\verifactu_chain_diagram_1780579995102.png"
-    img_flujo = r"C:\Users\BRAIS\.gemini\antigravity\brain\abd2e431-f669-4796-a0bd-da6198329b9d\facturacion_flow_steps_1780580010392.png"
+    # Rutas de imágenes relativas al repositorio (colocar los PNG en resources/img/).
+    # Si no existen, las diapositivas se generan sin imagen (fallback controlado).
+    import os as _os
+    _base = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "resources", "img")
+    img_cadena = _os.path.join(_base, "verifactu_chain_diagram.png")
+    img_flujo = _os.path.join(_base, "facturacion_flow_steps.png")
 
     # Layouts de pptx (en blanco para control de diseño)
     blank_layout = prs.slide_layouts[6]

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Verificación de factura (DEMO) — FacturaFácil</title>
+    <link href="assets/fonts/inter.css" rel="stylesheet">
+    <style>
+        :root { --primary:#4f46e5; --slate:#1e293b; --muted:#64748b; --bg:#f8fafc; }
+        * { box-sizing:border-box; margin:0; }
+        body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--slate); display:flex; justify-content:center; padding:2rem 1rem; min-height:100vh; }
+        .card { background:#fff; border:1px solid #e2e8f0; border-radius:16px; max-width:520px; width:100%; padding:2rem; box-shadow:0 10px 30px rgba(15,23,42,.06); height:fit-content; }
+        .badge-demo { display:inline-block; background:#fef3c7; color:#92400e; border:1px solid #fcd34d; padding:.35rem .8rem; border-radius:999px; font-size:.75rem; font-weight:700; letter-spacing:.03em; margin-bottom:1rem; }
+        h1 { font-size:1.3rem; margin-bottom:.5rem; }
+        p.lead { color:var(--muted); font-size:.9rem; line-height:1.5; margin-bottom:1.5rem; }
+        table { width:100%; border-collapse:collapse; font-size:.85rem; }
+        td { padding:.55rem .4rem; border-bottom:1px solid #f1f5f9; }
+        td:first-child { color:var(--muted); font-weight:600; width:40%; }
+        td:last-child { font-weight:600; word-break:break-all; }
+        .hash { font-family:monospace; font-size:.72rem; color:var(--primary); }
+        .footer { margin-top:1.5rem; font-size:.75rem; color:var(--muted); line-height:1.5; }
+        a { color:var(--primary); }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <span class="badge-demo">⚠ SIMULACIÓN — SIN VALIDEZ FISCAL</span>
+        <h1>Verificación de factura demostrativa</h1>
+        <p class="lead">Esta página forma parte del <strong>simulador FacturaFácil</strong>. La factura asociada a este código QR ha sido generada en un entorno de demostración: <strong>no ha sido remitida a la Agencia Tributaria y carece de cualquier validez fiscal o legal</strong>. Los datos que se muestran a continuación proceden únicamente de la propia URL del QR.</p>
+        <table id="datos"><tbody></tbody></table>
+        <p class="footer">
+            En un sistema VeriFactu real y conforme al RD 1007/2023, el QR de la factura dirige al servicio de cotejo oficial de la sede electrónica de la AEAT. Este simulador nunca utiliza esa dirección para evitar confusiones.<br><br>
+            <a href="index.html">&larr; Volver a FacturaFácil</a>
+        </p>
+    </main>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const campos = [
+            ['NIF emisor (ficticio)', 'nif'],
+            ['Nº de serie', 'numserie'],
+            ['Fecha', 'fecha'],
+            ['Importe total', 'importe'],
+            ['Huella SHA-256', 'hash']
+        ];
+        const tbody = document.querySelector('#datos tbody');
+        campos.forEach(([label, key]) => {
+            const v = params.get(key);
+            if (!v) return;
+            const tr = document.createElement('tr');
+            const td1 = document.createElement('td'); td1.textContent = label;
+            const td2 = document.createElement('td'); td2.textContent = key === 'importe' ? v + ' €' : v;
+            if (key === 'hash') td2.className = 'hash';
+            tr.append(td1, td2);
+            tbody.appendChild(tr);
+        });
+        if (!tbody.children.length) {
+            tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;color:var(--muted);">No se han recibido datos de factura en la URL.</td></tr>';
+        }
+    </script>
+</body>
+</html>

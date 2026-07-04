@@ -1,7 +1,56 @@
+// --- HELPERS DE SEGURIDAD Y VALIDACION (auditoria 2026-07) ---
+        function escapeHtml(v) {
+            return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+        function escapeXml(v) {
+            return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+        }
+        // Valida NIF (DNI/NIE) y CIF espanoles con digito de control
+        function validarNifCif(value) {
+            const v = String(value || '').toUpperCase().trim();
+            const dniRe = /^(\d{8})([A-Z])$/, nieRe = /^[XYZ]\d{7}[A-Z]$/, cifRe = /^[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]$/;
+            const letras = 'TRWAGMYFPDXBNJZSQVHLCKE';
+            if (dniRe.test(v)) return letras[parseInt(v.slice(0,8),10) % 23] === v[8];
+            if (nieRe.test(v)) {
+                const num = ({X:'0',Y:'1',Z:'2'})[v[0]] + v.slice(1,8);
+                return letras[parseInt(num,10) % 23] === v[8];
+            }
+            if (cifRe.test(v)) {
+                const digits = v.slice(1,8);
+                let sum = 0;
+                for (let i = 0; i < 7; i++) {
+                    const d = parseInt(digits[i],10);
+                    if (i % 2 === 0) { const dd = d*2; sum += Math.floor(dd/10) + dd%10; }
+                    else sum += d;
+                }
+                const control = (10 - (sum % 10)) % 10;
+                const ctrlChar = v[8];
+                return ctrlChar === String(control) || ctrlChar === 'JABCDEFGHI'[control];
+            }
+            return false;
+        }
+        // Genera un QR localmente (sin enviar datos a servidores externos)
+        function renderQrLocal(el, data, sizePx) {
+            if (!el) return;
+            try {
+                const qr = qrcode(0, 'M');
+                qr.addData(data);
+                qr.make();
+                el.innerHTML = qr.createSvgTag({ scalable: true, margin: 2 });
+                const svg = el.querySelector('svg');
+                if (svg) { svg.style.width = sizePx + 'px'; svg.style.height = sizePx + 'px'; }
+            } catch (e) { el.innerHTML = ''; }
+        }
+        // URL de verificacion DEMO propia (nunca la sede real de la AEAT: esto es un simulador)
+        function buildDemoQrUrl(nif, numserie, fecha, importe, hash) {
+            const base = window.location.origin + window.location.pathname.replace(/apps\/.*$/, '') + 'verificacion-demo.html';
+            return `${base}?nif=${encodeURIComponent(nif)}&numserie=${encodeURIComponent(numserie)}&fecha=${encodeURIComponent(fecha)}&importe=${encodeURIComponent(importe)}&hash=${encodeURIComponent(hash)}`;
+        }
+
 // --- BASE DE DATOS LOCAL ---
         let appConfig = {
             razon: "Juan Pérez Lorenzo S.L.",
-            nif: "A1234567B",
+            nif: "A12345674",
             direccion: "Calle Gran Vía 45",
             cp: "28013",
             ciudad: "Madrid",
@@ -9,8 +58,8 @@
         };
 
         let clients = [
-            { nif: "B98765432", razon: "Distribuciones Bahía S.L.", direccion: "Calle Bahía 10, Vigo, 36201, Pontevedra", email: "compras@bahiasl.com" },
-            { nif: "B87654321", razon: "Suministros Lorenzo S.A.", direccion: "Polígono Industrial La Paz, Parcela 8, Zaragoza, 50012", email: "facturacion@slorenzo.es" }
+            { nif: "B98765431", razon: "Distribuciones Bahía S.L.", direccion: "Calle Bahía 10, Vigo, 36201, Pontevedra", email: "compras@bahiasl.com" },
+            { nif: "B87654323", razon: "Suministros Lorenzo S.A.", direccion: "Polígono Industrial La Paz, Parcela 8, Zaragoza, 50012", email: "facturacion@slorenzo.es" }
         ];
 
         let invoices = [];
@@ -20,10 +69,10 @@
         // --- SESSION AND USERS STATE ---
         let activeSession = {
             name: "Brais Pérez",
-            email: "braisperezlorenzo@gmail.com",
+            email: "demo@facturafacil.es",
             role: "Administrador",
             company: "Mi Negocio S.L.",
-            nif: "A1234567B",
+            nif: "A12345674",
             lastLogin: "11/06/2026 13:30",
             statCount: 0,
             statTotal: 0
@@ -89,8 +138,8 @@
                 const localDate = new Date(log.fecha).toLocaleString('es-ES');
                 tr.innerHTML = `
                     <td class="font-semibold">${localDate}</td>
-                    <td><span class="badge badge-event">${log.evento}</span></td>
-                    <td>${log.descripcion}</td>
+                    <td><span class="badge badge-event">${escapeHtml(log.evento)}</span></td>
+                    <td>${escapeHtml(log.descripcion)}</td>
                     <td><span class="hash-tag" title="${log.hashEvento}">${log.hashEvento.substring(0, 15)}...</span></td>
                 `;
                 body.appendChild(tr);
@@ -211,10 +260,10 @@
   </FileHeader>
   <Parties>
     <SellerParty>
-      <TaxIdentificationNumber>${inv.emisor.nif}</TaxIdentificationNumber>
-      <CorporateName>${inv.emisor.razon}</CorporateName>
+      <TaxIdentificationNumber>${escapeXml(inv.emisor.nif)}</TaxIdentificationNumber>
+      <CorporateName>${escapeXml(inv.emisor.razon)}</CorporateName>
       <AddressInSpain>
-        <Address>${inv.emisor.direccion}</Address>
+        <Address>${escapeXml(inv.emisor.direccion)}</Address>
         <PostCode>${inv.emisor.cp}</PostCode>
         <Town>${inv.emisor.ciudad}</Town>
         <Province>${inv.emisor.ciudad}</Province>
@@ -222,10 +271,10 @@
       </AddressInSpain>
     </SellerParty>
     <BuyerParty>
-      <TaxIdentificationNumber>${inv.cliente.nif}</TaxIdentificationNumber>
-      <CorporateName>${inv.cliente.razon}</CorporateName>
+      <TaxIdentificationNumber>${escapeXml(inv.cliente.nif)}</TaxIdentificationNumber>
+      <CorporateName>${escapeXml(inv.cliente.razon)}</CorporateName>
       <AddressInSpain>
-        <Address>${inv.cliente.direccion}</Address>
+        <Address>${escapeXml(inv.cliente.direccion)}</Address>
         <CountryCode>ESP</CountryCode>
       </AddressInSpain>
     </BuyerParty>
@@ -255,7 +304,7 @@
       <Items>
         ${inv.lineas.map(l => `
         <InvoiceLine>
-          <ItemDescription>${l.concepto}</ItemDescription>
+          <ItemDescription>${escapeXml(l.concepto)}</ItemDescription>
           <Quantity>${l.cantidad.toFixed(2)}</Quantity>
           <UnitOfMeasure>01</UnitOfMeasure>
           <UnitPriceWithoutTax>${l.precioUnitario.toFixed(2)}</UnitPriceWithoutTax>
@@ -317,8 +366,8 @@
                 const localDate = new Date(log.fecha).toLocaleString('es-ES');
                 tr.innerHTML = `
                     <td class="font-semibold">${localDate}</td>
-                    <td><span class="badge badge-event">${log.evento}</span></td>
-                    <td>${log.descripcion}</td>
+                    <td><span class="badge badge-event">${escapeHtml(log.evento)}</span></td>
+                    <td>${escapeHtml(log.descripcion)}</td>
                     <td><span class="hash-tag" title="${log.hashEvento}">${log.hashEvento.substring(0, 15)}...</span></td>
                 `;
                 body.appendChild(tr);
@@ -360,7 +409,7 @@
             }
 
             invoices.forEach(inv => {
-                select.innerHTML += `<option value="${inv.id}">${inv.id} - ${inv.cliente.razon}</option>`;
+                select.innerHTML += `<option value="${inv.id}">${inv.id} - ${escapeXml(inv.cliente.razon)}</option>`;
             });
 
             actualizarImporteOriginalTamper();
@@ -435,7 +484,7 @@
             for (let i = 0; i < invoices.length; i++) {
                 const inv = invoices[i];
                 // Concatenamos con los datos actuales de la factura
-                const concatStr = `${inv.emisor.nif}|${inv.id}|${inv.fecha}|${inv.total.toFixed(2)}|${inv.hashAnterior}`;
+                const concatStr = `${escapeXml(inv.emisor.nif)}|${inv.id}|${inv.fecha}|${inv.total.toFixed(2)}|${inv.hashAnterior}`;
                 const computedHash = await sha256(concatStr);
 
                 if (computedHash !== inv.hashFactura || inv.hashAnterior !== ultHash) {
@@ -604,7 +653,7 @@
                 const concatStr = `${appConfig.nif}|${item.id}|${item.fecha}|${item.total.toFixed(2)}|${ultHash}`;
                 const hashFactura = await sha256(concatStr);
                 const fechaFormat = item.fecha.split('-').reverse().join('-');
-                const qrUrl = `https://www2.agenciatributaria.gob.es/wlpl/TBAI-VFCT/QR?nif=${appConfig.nif}&numserie=${item.id}&fecha=${fechaFormat}&importe=${item.total.toFixed(2)}&hash=${hashFactura}`;
+                const qrUrl = buildDemoQrUrl(appConfig.nif, item.id, fechaFormat, item.total.toFixed(2), hashFactura);
 
                 const invoice = {
                     id: item.id,
@@ -813,6 +862,10 @@
             const dir = document.getElementById('cli-dir').value;
             const email = document.getElementById('cli-email').value;
 
+            if (!validarNifCif(nif)) {
+                alert("El NIF/CIF introducido no es v\u00e1lido (d\u00edgito de control incorrecto).");
+                return;
+            }
             if (clients.some(c => c.nif === nif)) {
                 alert("Ya existe un cliente con ese NIF.");
                 return;
@@ -845,10 +898,10 @@
             clients.forEach(c => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="font-weight:700; color:var(--primary);">${c.razon}</td>
-                    <td style="font-weight:600;">${c.nif}</td>
-                    <td>${c.direccion}</td>
-                    <td>${c.email || '--'}</td>
+                    <td style="font-weight:700; color:var(--primary);">${escapeHtml(c.razon)}</td>
+                    <td style="font-weight:600;">${escapeHtml(c.nif)}</td>
+                    <td>${escapeHtml(c.direccion)}</td>
+                    <td>${escapeHtml(c.email || '--')}</td>
                     <td>
                         <button class="btn btn-secondary btn-danger" style="padding:0.35rem 0.5rem; font-size:0.75rem;" onclick="eliminarCliente('${c.nif}')">Eliminar</button>
                     </td>
@@ -913,7 +966,7 @@
             const hashFactura = await sha256(contentToHash);
 
             const fechaFormat = fecha.split('-').reverse().join('-');
-            const qrUrl = `https://www2.agenciatributaria.gob.es/wlpl/TBAI-VFCT/QR?nif=${appConfig.nif}&numserie=${serie}-${numero}&fecha=${fechaFormat}&importe=${totalFactura.toFixed(2)}&hash=${hashFactura}`;
+            const qrUrl = buildDemoQrUrl(appConfig.nif, `${serie}-${numero}`, fechaFormat, totalFactura.toFixed(2), hashFactura);
 
             const invoice = {
                 id: `${serie}-${numero}`,
@@ -1031,7 +1084,7 @@
                 tr.innerHTML = `
                     <td class="font-bold text-success">${i.id}</td>
                     <td>${i.fecha.split('-').reverse().join('-')}</td>
-                    <td>${i.cliente.razon}</td>
+                    <td>${escapeHtml(i.cliente.razon)}</td>
                     <td class="font-bold text-accent">${i.total.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
                     <td><span class="hash-tag" title="${i.hashFactura}">${i.hashFactura.substring(0, 15)}...</span></td>
                     <td>
@@ -1151,7 +1204,7 @@
                     : `<button class="btn btn-secondary btn-danger" style="padding:0.35rem 0.5rem; font-size:0.75rem;" onclick="eliminarUsuario('${u.name}')">Eliminar</button>`;
 
                 tr.innerHTML = `
-                    <td class="font-bold">${u.name} ${isCurrentUser ? '<span class="text-success">(Actual)</span>' : ''}</td>
+                    <td class="font-bold">${escapeHtml(u.name)} ${isCurrentUser ? '<span class="text-success">(Actual)</span>' : ''}</td>
                     <td><span class="badge-role ${badgeClass}">${u.role}</span></td>
                     <td class="font-size-xs text-muted">${permissions}</td>
                     <td><span class="badge badge-success">● Activo</span></td>
@@ -1217,8 +1270,8 @@
                     <td class="font-bold text-success">${i.id}</td>
                     <td>${i.fecha.split('-').reverse().join('-')}</td>
                     <td>
-                        <div class="font-bold">${i.cliente.razon}</div>
-                        <div class="font-size-xxs text-muted">${i.cliente.nif}</div>
+                        <div class="font-bold">${escapeHtml(i.cliente.razon)}</div>
+                        <div class="font-size-xxs text-muted">${escapeHtml(i.cliente.nif)}</div>
                     </td>
                     <td>${i.base.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</td>
                     <td>${i.iva.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</td>
@@ -1243,7 +1296,7 @@
 
             document.getElementById('p-emi-razon').innerText = inv.emisor.razon;
             document.getElementById('p-emi-nif').innerText = "NIF: " + inv.emisor.nif;
-            document.getElementById('p-emi-addr').innerText = `${inv.emisor.direccion}, ${inv.emisor.cp} ${inv.emisor.ciudad}`;
+            document.getElementById('p-emi-addr').innerText = `${escapeXml(inv.emisor.direccion)}, ${inv.emisor.cp} ${inv.emisor.ciudad}`;
 
             document.getElementById('p-fac-num').innerText = `FACTURA Nº ${inv.id}`;
             document.getElementById('p-fac-date').innerText = `Fecha de expedición: ${inv.fecha.split('-').reverse().join('-')}`;
@@ -1257,7 +1310,7 @@
             inv.lineas.forEach(l => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="font-semibold" style="color:var(--dark-slate);">${l.concepto}</td>
+                    <td class="font-semibold" style="color:var(--dark-slate);">${escapeHtml(l.concepto)}</td>
                     <td class="text-right">${l.cantidad}</td>
                     <td class="text-right">${l.precioUnitario.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</td>
                     <td class="text-right">${l.ivaPorcentaje}%</td>
@@ -1270,7 +1323,7 @@
             document.getElementById('p-iva').innerText = inv.iva.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + " €";
             document.getElementById('p-total').innerText = inv.total.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + " €";
 
-            document.getElementById('p-qr-box').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(inv.qrUrl)}" class="print-qr-img" alt="QR Verifactu">`;
+            renderQrLocal(document.getElementById('p-qr-box'), inv.qrUrl, 90);
             document.getElementById('p-hash').innerText = inv.hashFactura;
             document.getElementById('btn-modal-xml').setAttribute('onclick', `descargarXMLFacturae('${inv.id}')`);
 
@@ -1356,8 +1409,8 @@
                 tr.innerHTML = `
                     <td class="font-bold text-success">${item.id}</td>
                     <td>${item.fecha}</td>
-                    <td>${item.email}</td>
-                    <td>${item.nombre}</td>
+                    <td>${escapeHtml(item.email)}</td>
+                    <td>${escapeHtml(item.nombre)}</td>
                     <td>${item.base.toFixed(2)} €</td>
                     <td>${item.iva.toFixed(2)} €</td>
                     <td class="font-bold">${item.total.toFixed(2)} €</td>
@@ -1465,7 +1518,7 @@
                 card.className = 'servicio-card';
                 card.innerHTML = `
                     <div class="servicio-card-info">
-                        <div class="servicio-card-name">${s.concepto}</div>
+                        <div class="servicio-card-name">${escapeHtml(s.concepto)}</div>
                         <div class="servicio-card-meta">
                             <span>${s.precio.toLocaleString('es-ES', {minimumFractionDigits: 2})} €</span>
                             <span>IVA ${s.iva}%</span>
@@ -1637,7 +1690,7 @@
                 // Add to Live Preview document table
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="font-semibold" style="text-align: left;">${concepto}</td>
+                    <td class="font-semibold" style="text-align: left;">${escapeHtml(concepto)}</td>
                     <td class="text-right">${cant}</td>
                     <td class="text-right">${precio.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
                     <td class="text-right font-bold">${totalLine.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
