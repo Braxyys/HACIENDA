@@ -49,16 +49,16 @@
 
 // --- BASE DE DATOS LOCAL ---
         let appConfig = {
-            razon: "Juan Pérez Lorenzo S.L.",
-            nif: "A12345674",
-            direccion: "Calle Gran Vía 45",
-            cp: "28013",
-            ciudad: "Madrid",
+            razon: "Brais Pérez Lorenzo (Autónomo)",
+            nif: "12345678Z",
+            direccion: "Rúa do Progreso, 32",
+            cp: "32003",
+            ciudad: "Ourense",
             telefono: "600123456"
         };
 
         let clients = [
-            { nif: "B98765431", razon: "Distribuciones Bahía S.L.", direccion: "Calle Bahía 10, Vigo, 36201, Pontevedra", email: "compras@bahiasl.com" },
+            { nif: "B98765431", razon: "Distribuciones Bahía S.L.", direccion: "Rúa do Paseo 15, Ourense, 32003, Ourense", email: "compras@bahiasl.com" },
             { nif: "B87654323", razon: "Suministros Lorenzo S.A.", direccion: "Polígono Industrial La Paz, Parcela 8, Zaragoza, 50012", email: "facturacion@slorenzo.es" }
         ];
 
@@ -71,7 +71,7 @@
             name: "Brais Pérez",
             email: "demo@facturafacil.es",
             role: "Administrador",
-            company: "Mi Negocio S.L.",
+            company: "Brais Pérez Lorenzo (Autónomo)",
             nif: "A12345674",
             lastLogin: "11/06/2026 13:30",
             statCount: 0,
@@ -634,7 +634,7 @@
                     clientMap[item.nif] = {
                         nif: item.nif,
                         razon: item.nombre,
-                        direccion: `Calle de ${item.nombre}, Vigo, Pontevedra`,
+                        direccion: `Rúa de ${item.nombre}, Ourense`,
                         email: item.email
                     };
                     loadedClients.push(clientMap[item.nif]);
@@ -716,6 +716,11 @@
 
         // --- TABS CONTROL ---
         function setTab(tab) {
+            // El módulo de Gestión Laboral es exclusivo del Administrador
+            if (tab === 'rrhh' && activeSession.role !== 'Administrador') {
+                showToast('Módulo disponible únicamente para el rol Administrador.');
+                return;
+            }
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.menu-item-btn').forEach(b => b.classList.remove('active'));
 
@@ -728,7 +733,8 @@
                 'clie': { title: 'Mis Clientes', sub: 'Registra los datos fiscales de tus clientes para utilizarlos rápidamente en tus facturas.' },
                 'users': { title: 'Gestión de Usuarios y Roles', sub: 'Control de acceso del personal de la empresa y roles auditados por Hacienda.' },
                 'conf': { title: 'Datos de Mi Empresa', sub: 'Modifica los datos fiscales que representan a tu negocio emisor.' },
-                'cert': { title: 'Certificación y Auditoría (SIF)', sub: 'Declaración responsable del software y registro inalterable de eventos de auditoría.' }
+                'cert': { title: 'Certificación y Auditoría (SIF)', sub: 'Declaración responsable del software y registro inalterable de eventos de auditoría.' },
+                'rrhh': { title: 'Gestión Laboral (Beta)', sub: 'Nóminas, vacaciones y firma de documentos. Vista previa exclusiva para el rol Administrador.' }
             };
 
             document.getElementById(`pane-${tab}`).classList.add('active');
@@ -741,6 +747,7 @@
                 renderUserProfileTab();
                 renderServiciosFrecuentesProfile();
             }
+            if (tab === 'rrhh') { renderRrhhEmpleados(); poblarSelectorNomina(); calcularNomina(); renderRrhhVacaciones(); renderRrhhDocs(); }
             if (tab === 'emit') prepararFormularioFactura();
             if (tab === 'dash') p1_renderStats();
             if (tab === 'hist') {
@@ -1154,6 +1161,16 @@
                 const el = document.getElementById(selector) || document.querySelector(selector);
                 if (el) el.classList.add('role-hidden');
             };
+
+            // Gestión Laboral: visible SOLO para Administrador
+            const rrhhMenu = document.getElementById('menu-rrhh-wrapper');
+            const rrhhPane = document.getElementById('pane-rrhh');
+            if (role !== 'Administrador') {
+                if (rrhhMenu) rrhhMenu.classList.add('role-hidden');
+                if (rrhhPane) rrhhPane.classList.add('role-hidden');
+                // Si estaba abierto el panel, volver al dashboard
+                if (rrhhPane && rrhhPane.classList.contains('active')) setTab('dash');
+            }
 
             if (role === 'Auditor') {
                 // Readonly access to everything
@@ -1718,6 +1735,215 @@
             document.getElementById('lp-total').innerText = grandTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
         }
 
+        // =====================================================
+        // MÓDULO GESTIÓN LABORAL (BETA — SOLO ADMINISTRADOR)
+        // Simulación con datos demo. No constituye cálculo
+        // laboral, fiscal ni de Seguridad Social real.
+        // =====================================================
+        const RRHH_SS_TRABAJADOR = 0.0648; // aprox: 4,70% CC + 1,55% desempleo + 0,10% FP + 0,13% MEI
+
+        let rrhhEmpleados = [
+            { id: 'E1', nombre: 'Brais Pérez Lorenzo', puesto: 'Administrador / Fundador', jornada: 'Parcial 60h/mes', brutoAnual: 14400, irpf: 8, discapacidad: 45 },
+            { id: 'E2', nombre: 'Clara Trilo', puesto: 'Contable', jornada: 'Completa', brutoAnual: 21000, irpf: 12, discapacidad: 0 },
+            { id: 'E3', nombre: 'Iván Souto Regueiro', puesto: 'Soporte Técnico', jornada: 'Parcial 50%', brutoAnual: 11000, irpf: 6, discapacidad: 33 }
+        ];
+
+        let rrhhVacaciones = [
+            { id: 'V1', empId: 'E2', tipo: 'Vacaciones', desde: '2026-08-03', hasta: '2026-08-14', dias: 10, estado: 'Pendiente' },
+            { id: 'V2', empId: 'E3', tipo: 'Asuntos propios', desde: '2026-07-20', hasta: '2026-07-20', dias: 1, estado: 'Aprobada' }
+        ];
+
+        let rrhhDocs = [
+            { id: 'D1', nombre: 'Contrato de trabajo indefinido', empId: 'E2', fecha: '2026-01-15', estado: 'Firmado', hash: '' },
+            { id: 'D2', nombre: 'Anexo de confidencialidad (RGPD)', empId: 'E3', fecha: '2026-07-01', estado: 'Pendiente', hash: '' },
+            { id: 'D3', nombre: 'Certificado de discapacidad (custodia)', empId: 'E3', fecha: '2026-06-28', estado: 'Pendiente', hash: '' }
+        ];
+
+        function rrhhGuardar() {
+            localStorage.setItem('vf_rrhh', JSON.stringify({ empleados: rrhhEmpleados, vacaciones: rrhhVacaciones, docs: rrhhDocs }));
+        }
+
+        function inicializarRRHH() {
+            const saved = localStorage.getItem('vf_rrhh');
+            if (saved) {
+                try {
+                    const d = JSON.parse(saved);
+                    if (Array.isArray(d.empleados)) rrhhEmpleados = d.empleados;
+                    if (Array.isArray(d.vacaciones)) rrhhVacaciones = d.vacaciones;
+                    if (Array.isArray(d.docs)) rrhhDocs = d.docs;
+                } catch (e) { /* datos corruptos: se mantienen los demo */ }
+            }
+        }
+
+        function rrhhEmpleadoPorId(id) { return rrhhEmpleados.find(e => e.id === id); }
+
+        function setRrhhTab(sub) {
+            document.querySelectorAll('.rrhh-subpane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.rrhh-subtab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`rrhh-${sub}`).classList.add('active');
+            document.getElementById(`rt-${sub}`).classList.add('active');
+            if (sub === 'emp') renderRrhhEmpleados();
+            if (sub === 'nom') { poblarSelectorNomina(); calcularNomina(); }
+            if (sub === 'vac') renderRrhhVacaciones();
+            if (sub === 'doc') renderRrhhDocs();
+        }
+
+        function renderRrhhEmpleados() {
+            const body = document.getElementById('rrhh-emp-body');
+            if (!body) return;
+            body.innerHTML = '';
+            rrhhEmpleados.forEach(e => {
+                const bonif = e.discapacidad >= 33
+                    ? '<span class="badge badge-success">✔ Aplicable</span>'
+                    : '<span class="badge panel-secondary">—</span>';
+                const disc = e.discapacidad > 0 ? `${e.discapacidad}%` : '—';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-bold">${escapeHtml(e.nombre)}</td>
+                    <td>${escapeHtml(e.puesto)}</td>
+                    <td>${escapeHtml(e.jornada)}</td>
+                    <td>${e.brutoAnual.toLocaleString('es-ES')} €</td>
+                    <td>${disc}</td>
+                    <td>${bonif}</td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function poblarSelectorNomina() {
+            const sel = document.getElementById('nom-emp-sel');
+            if (!sel) return;
+            sel.innerHTML = '';
+            rrhhEmpleados.forEach(e => {
+                const opt = document.createElement('option');
+                opt.value = e.id;
+                opt.textContent = e.nombre;
+                sel.appendChild(opt);
+            });
+        }
+
+        function calcularNomina() {
+            const sel = document.getElementById('nom-emp-sel');
+            const box = document.getElementById('nomina-doc');
+            if (!sel || !box || !sel.value) return;
+            const e = rrhhEmpleadoPorId(sel.value);
+            if (!e) return;
+            const mes = document.getElementById('nom-mes').value || '2026-07';
+
+            const brutoMes = e.brutoAnual / 12; // pagas extra prorrateadas
+            const dedIrpf = brutoMes * (e.irpf / 100);
+            const dedSS = brutoMes * RRHH_SS_TRABAJADOR;
+            const liquido = brutoMes - dedIrpf - dedSS;
+            const f = v => v.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+
+            const notaDisc = e.discapacidad >= 33
+                ? `<div class="nomina-nota">♿ Trabajador con discapacidad reconocida del ${e.discapacidad}%: el contrato puede beneficiarse de bonificaciones en las cuotas empresariales de la Seguridad Social y de mínimos incrementados en su IRPF. (Informativo — verificar con gestoría)</div>`
+                : '';
+
+            box.innerHTML = `
+                <div class="nomina-header">
+                    <div>
+                        <div style="font-weight:800; font-size:0.9rem;">RECIBO DE SALARIOS <span class="beta-tag">SIMULACIÓN</span></div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(appConfig.razon)} · NIF ${escapeHtml(appConfig.nif)} · Periodo: ${escapeHtml(mes)}</div>
+                    </div>
+                    <div style="text-align:right; font-size:0.78rem;">
+                        <div class="font-bold">${escapeHtml(e.nombre)}</div>
+                        <div style="color:var(--text-muted);">${escapeHtml(e.puesto)} · ${escapeHtml(e.jornada)}</div>
+                    </div>
+                </div>
+                <table class="data-table" style="margin-top:0.75rem;">
+                    <tbody>
+                        <tr><td>Salario base (pagas prorrateadas)</td><td class="text-right font-bold">${f(brutoMes)}</td></tr>
+                        <tr><td style="color:var(--error);">− Retención IRPF (${e.irpf}%)</td><td class="text-right" style="color:var(--error);">−${f(dedIrpf)}</td></tr>
+                        <tr><td style="color:var(--error);">− Cotización Seguridad Social trabajador (${(RRHH_SS_TRABAJADOR*100).toFixed(2)}%)</td><td class="text-right" style="color:var(--error);">−${f(dedSS)}</td></tr>
+                        <tr><td class="font-bold" style="font-size:0.95rem;">LÍQUIDO A PERCIBIR</td><td class="text-right font-bold" style="font-size:0.95rem; color:var(--success);">${f(liquido)}</td></tr>
+                    </tbody>
+                </table>
+                ${notaDisc}
+                <div style="font-size:0.68rem; color:var(--text-muted); margin-top:0.75rem;">⚠️ Cálculo orientativo de demostración con tipos simplificados. Una nómina real depende del convenio colectivo, la situación personal del trabajador (IRPF), bases de cotización y demás circunstancias. No usar como documento oficial.</div>
+            `;
+        }
+
+        async function resolverVacacion(id, decision) {
+            const v = rrhhVacaciones.find(x => x.id === id);
+            if (!v) return;
+            v.estado = decision;
+            rrhhGuardar();
+            const emp = rrhhEmpleadoPorId(v.empId);
+            await registrarAuditLog('RRHH_VACACIONES', `Solicitud de ${v.tipo.toLowerCase()} de ${emp ? emp.nombre : v.empId} (${v.desde} → ${v.hasta}) marcada como ${decision.toUpperCase()}.`);
+            renderRrhhVacaciones();
+            showToast(`Solicitud ${decision.toLowerCase()}.`);
+        }
+
+        function renderRrhhVacaciones() {
+            const body = document.getElementById('rrhh-vac-body');
+            if (!body) return;
+            body.innerHTML = '';
+            rrhhVacaciones.forEach(v => {
+                const emp = rrhhEmpleadoPorId(v.empId);
+                let badge = '<span class="badge panel-secondary">Pendiente</span>';
+                if (v.estado === 'Aprobada') badge = '<span class="badge badge-success">✔ Aprobada</span>';
+                if (v.estado === 'Denegada') badge = '<span class="badge" style="background:#fee2e2;color:#b91c1c;">✖ Denegada</span>';
+                const accion = v.estado === 'Pendiente'
+                    ? `<button class="btn btn-sm" style="padding:0.3rem 0.6rem; font-size:0.7rem;" onclick="resolverVacacion('${v.id}','Aprobada')">Aprobar</button>
+                       <button class="btn btn-secondary btn-danger" style="padding:0.3rem 0.6rem; font-size:0.7rem;" onclick="resolverVacacion('${v.id}','Denegada')">Denegar</button>`
+                    : '—';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-bold">${escapeHtml(emp ? emp.nombre : '—')}</td>
+                    <td>${escapeHtml(v.tipo)}</td>
+                    <td>${escapeHtml(v.desde)}</td>
+                    <td>${escapeHtml(v.hasta)}</td>
+                    <td>${v.dias}</td>
+                    <td>${badge}</td>
+                    <td>${accion}</td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        async function firmarDocumento(id) {
+            const d = rrhhDocs.find(x => x.id === id);
+            if (!d || d.estado === 'Firmado') return;
+            const emp = rrhhEmpleadoPorId(d.empId);
+            const contenido = `${d.nombre}|${d.empId}|${d.fecha}|${new Date().toISOString()}|${activeSession.name}`;
+            d.hash = await sha256(contenido);
+            d.estado = 'Firmado';
+            rrhhGuardar();
+            await registrarAuditLog('RRHH_FIRMA', `Documento "${d.nombre}" de ${emp ? emp.nombre : d.empId} firmado electrónicamente (simulación). Huella: ${d.hash.substring(0, 16)}...`);
+            renderRrhhDocs();
+            showToast('Documento firmado y anclado al registro de eventos.');
+        }
+
+        function renderRrhhDocs() {
+            const body = document.getElementById('rrhh-doc-body');
+            if (!body) return;
+            body.innerHTML = '';
+            rrhhDocs.forEach(d => {
+                const emp = rrhhEmpleadoPorId(d.empId);
+                const badge = d.estado === 'Firmado'
+                    ? '<span class="badge badge-success">✔ Firmado</span>'
+                    : '<span class="badge panel-secondary">Pendiente de firma</span>';
+                const huella = d.hash
+                    ? `<span class="hash-tag" title="${d.hash}">${d.hash.substring(0, 12)}...</span>`
+                    : '—';
+                const accion = d.estado === 'Pendiente'
+                    ? `<button class="btn btn-sm" style="padding:0.3rem 0.6rem; font-size:0.7rem;" onclick="firmarDocumento('${d.id}')">✍️ Firmar</button>`
+                    : '—';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-bold">${escapeHtml(d.nombre)}</td>
+                    <td>${escapeHtml(emp ? emp.nombre : '—')}</td>
+                    <td>${escapeHtml(d.fecha)}</td>
+                    <td>${badge}</td>
+                    <td>${huella}</td>
+                    <td>${accion}</td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
         window.onload = async () => {
             await cargarBaseDatos();
+            inicializarRRHH();
         };

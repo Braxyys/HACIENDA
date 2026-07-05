@@ -18,9 +18,11 @@ jobs:
       - name: Comprobar que no hay dominios de terceros prohibidos
         run: |
           ! grep -rn "api.qrserver.com\|fonts.googleapis.com" --include="*.html" --include="*.js" apps/ index.html verificacion-demo.html
-      - name: Comprobar que no hay datos personales conocidos
+      - name: Comprobar que no hay datos personales en el código de las apps
+        # (en legal/ el email es una mención intencionada exigida por la LSSI-CE)
         run: |
-          ! grep -rni "braisperezlorenzo@gmail" --include="*.js" --include="*.html" .
+          ! grep -rni "braisperezlorenzo@gmail" --include="*.js" apps/ 
+          ! grep -rni "braisperezlorenzo@gmail" index.html verificacion-demo.html apps/facturador-pymes/index.html apps/compliance-suite/index.html
       - name: Validar sintaxis JavaScript
         run: |
           for f in apps/facturador-pymes/app.js apps/compliance-suite/app.js; do
