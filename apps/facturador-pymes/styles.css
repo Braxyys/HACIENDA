@@ -1869,3 +1869,82 @@ input[readonly], select[readonly] {
     color: #065f46;
 }
 .text-right { text-align: right; }
+
+/* ===== RRHH v2: FICHA, CALENDARIO Y NÓMINA OFICIAL ===== */
+.complementos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.5rem;
+}
+.comp-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 8px;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    background: #fff;
+    transition: all 0.15s ease;
+}
+.comp-item.comp-on { border-color: var(--primary, #4f46e5); background: var(--primary-light, #eef2ff); }
+.comp-nombre { flex: 1; font-weight: 600; }
+.comp-nombre-input { flex: 1; border: 1px solid var(--border, #e2e8f0); border-radius: 6px; padding: 0.25rem 0.4rem; font-size: 0.72rem; font-family: inherit; }
+.comp-importe { width: 72px; border: 1px solid var(--border, #e2e8f0); border-radius: 6px; padding: 0.25rem 0.4rem; font-size: 0.72rem; text-align: right; font-family: inherit; }
+.comp-eur { font-size: 0.65rem; color: var(--text-muted, #64748b); }
+
+.cal-resumen, .nomina-bases {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+.cal-stat {
+    flex: 1;
+    min-width: 130px;
+    background: #fff;
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+.cal-stat span { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted, #64748b); font-weight: 700; }
+.cal-stat b { font-size: 0.95rem; }
+.cal-stat-liquido { background: #ecfdf5; border-color: #a7f3d0; }
+.cal-stat-liquido b { color: #059669; font-size: 1.1rem; }
+
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+.cal-dow { text-align: center; font-size: 0.65rem; font-weight: 800; color: var(--text-muted, #64748b); padding: 0.25rem 0; }
+.cal-cell {
+    min-height: 58px;
+    border-radius: 8px;
+    padding: 0.3rem 0.4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid var(--border, #e2e8f0);
+    background: #fff;
+}
+.cal-empty { border: none; background: transparent; }
+.cal-num { font-size: 0.7rem; font-weight: 700; }
+.cal-horas { font-size: 0.62rem; color: var(--text-muted, #64748b); text-align: right; }
+.cal-lab { background: #eef2ff; border-color: #c7d2fe; }
+.cal-finde { background: #f8fafc; color: #94a3b8; }
+.cal-vac { background: #fef3c7; border-color: #fcd34d; }
+.cal-leyenda { display: flex; gap: 1rem; margin-top: 0.75rem; font-size: 0.7rem; color: var(--text-muted, #64748b); flex-wrap: wrap; }
+.cal-dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
+.dot-lab { background: #c7d2fe; } .dot-fin { background: #e2e8f0; } .dot-vac { background: #fcd34d; }
+
+.nomina-oficial { border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 1rem; background: #fff; }
+.nomina-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem; }
+@media (max-width: 900px) { .nomina-cols { grid-template-columns: 1fr; } }
+.nomina-col-title { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.06em; color: var(--primary, #4f46e5); text-transform: uppercase; margin-bottom: 0.4rem; }
+.nomina-tabla td, .nomina-tabla th { padding: 0.4rem 0.5rem; font-size: 0.76rem; }
+.nomina-total-row td { border-top: 2px solid var(--dark-slate, #1e293b); font-weight: 800; }

@@ -747,7 +747,7 @@
                 renderUserProfileTab();
                 renderServiciosFrecuentesProfile();
             }
-            if (tab === 'rrhh') { renderRrhhEmpleados(); poblarSelectorNomina(); calcularNomina(); renderRrhhVacaciones(); renderRrhhDocs(); }
+            if (tab === 'rrhh') { renderRrhhEmpleados(); poblarSelector('nom-emp-sel'); poblarSelector('cal-emp-sel'); calcularNomina(); renderCalendario(); renderRrhhVacaciones(); renderRrhhDocs(); }
             if (tab === 'emit') prepararFormularioFactura();
             if (tab === 'dash') p1_renderStats();
             if (tab === 'hist') {
@@ -1736,21 +1736,45 @@
         }
 
         // =====================================================
-        // MÓDULO GESTIÓN LABORAL (BETA — SOLO ADMINISTRADOR)
-        // Simulación con datos demo. No constituye cálculo
-        // laboral, fiscal ni de Seguridad Social real.
+        // MÓDULO GESTIÓN LABORAL v2 (BETA — SOLO ADMINISTRADOR)
+        // Simulación demostrativa. Estructura de nómina basada en
+        // el recibo oficial español. NO es cálculo laboral real.
         // =====================================================
-        const RRHH_SS_TRABAJADOR = 0.0648; // aprox: 4,70% CC + 1,55% desempleo + 0,10% FP + 0,13% MEI
+        // Tipos de cotización del TRABAJADOR (recibo real 2025/26)
+        const COT_TRAB = [
+            { concepto: 'COTIZACIÓN CONT. COMUNES', tipo: 4.70 },
+            { concepto: 'COTIZACIÓN MEI', tipo: 0.13 },
+            { concepto: 'COTIZACIÓN FORMACIÓN', tipo: 0.10 },
+            { concepto: 'COTIZACIÓN DESEMPLEO', tipo: 1.55 }
+        ];
+        // Aportación de la EMPRESA
+        const COT_EMPRESA = [
+            { concepto: 'Contingencias comunes', tipo: 23.60 },
+            { concepto: 'Mecanismo Equidad Intergeneracional (MEI)', tipo: 0.67 },
+            { concepto: 'AT y EP', tipo: 3.00 },
+            { concepto: 'Desempleo', tipo: 5.50 },
+            { concepto: 'Formación Profesional', tipo: 0.60 },
+            { concepto: 'Fondo Garantía Salarial', tipo: 0.20 }
+        ];
+        // Catálogo de complementos habituales (seleccionables por empleado)
+        const COMPLEMENTOS_CATALOGO = [
+            { key: 'dedicacion', nombre: 'C. Dedicación', importe: 7.26 },
+            { key: 'transporte', nombre: 'Plus Transporte', importe: 30.00 },
+            { key: 'idiomas', nombre: 'Plus Idiomas', importe: 25.00 },
+            { key: 'nocturnidad', nombre: 'Plus Nocturnidad', importe: 40.00 },
+            { key: 'disponibilidad', nombre: 'Plus Disponibilidad', importe: 50.00 },
+            { key: 'absorbible', nombre: 'Gratif. Compens. Absorbible', importe: 25.93 }
+        ];
 
         let rrhhEmpleados = [
-            { id: 'E1', nombre: 'Brais Pérez Lorenzo', puesto: 'Administrador / Fundador', jornada: 'Parcial 60h/mes', brutoAnual: 14400, irpf: 8, discapacidad: 45 },
-            { id: 'E2', nombre: 'Clara Trilo', puesto: 'Contable', jornada: 'Completa', brutoAnual: 21000, irpf: 12, discapacidad: 0 },
-            { id: 'E3', nombre: 'Iván Souto Regueiro', puesto: 'Soporte Técnico', jornada: 'Parcial 50%', brutoAnual: 11000, irpf: 6, discapacidad: 33 }
+            { id: 'E1', nombre: 'Brais Pérez Lorenzo', dni: '00000001A', puesto: 'Administrador / Fundador', categoria: 'ADMIN', antiguedad: '2023-09-15', tipoSalario: 'hora', precioHora: 13.023, horasMes: 60, salarioMes: 0, pagas: 'separadas', irpf: 2, discapacidad: 45, complementos: [ { nombre: 'C. Dedicación', importe: 7.26 }, { nombre: 'Gratif. Compens. Absorbible', importe: 25.93 } ] },
+            { id: 'E2', nombre: 'Clara Trilo', dni: '00000002B', puesto: 'Contable', categoria: 'OFICIAL 1ª', antiguedad: '2026-01-15', tipoSalario: 'mes', precioHora: 0, horasMes: 160, salarioMes: 1750, pagas: 'prorrateadas', irpf: 12, discapacidad: 0, complementos: [ { nombre: 'Plus Transporte', importe: 30.00 } ] },
+            { id: 'E3', nombre: 'Iván Souto Regueiro', dni: '00000003C', puesto: 'Soporte Técnico', categoria: 'TÉCNICO', antiguedad: '2026-03-01', tipoSalario: 'mes', precioHora: 0, horasMes: 80, salarioMes: 920, pagas: 'prorrateadas', irpf: 6, discapacidad: 33, complementos: [] }
         ];
 
         let rrhhVacaciones = [
-            { id: 'V1', empId: 'E2', tipo: 'Vacaciones', desde: '2026-08-03', hasta: '2026-08-14', dias: 10, estado: 'Pendiente' },
-            { id: 'V2', empId: 'E3', tipo: 'Asuntos propios', desde: '2026-07-20', hasta: '2026-07-20', dias: 1, estado: 'Aprobada' }
+            { id: 'V1', empId: 'E2', tipo: 'Vacaciones', desde: '2026-07-20', hasta: '2026-07-31', dias: 10, estado: 'Aprobada' },
+            { id: 'V2', empId: 'E3', tipo: 'Asuntos propios', desde: '2026-07-10', hasta: '2026-07-10', dias: 1, estado: 'Pendiente' }
         ];
 
         let rrhhDocs = [
@@ -1760,11 +1784,11 @@
         ];
 
         function rrhhGuardar() {
-            localStorage.setItem('vf_rrhh', JSON.stringify({ empleados: rrhhEmpleados, vacaciones: rrhhVacaciones, docs: rrhhDocs }));
+            localStorage.setItem('vf_rrhh_v2', JSON.stringify({ empleados: rrhhEmpleados, vacaciones: rrhhVacaciones, docs: rrhhDocs }));
         }
 
         function inicializarRRHH() {
-            const saved = localStorage.getItem('vf_rrhh');
+            const saved = localStorage.getItem('vf_rrhh_v2');
             if (saved) {
                 try {
                     const d = JSON.parse(saved);
@@ -1776,6 +1800,7 @@
         }
 
         function rrhhEmpleadoPorId(id) { return rrhhEmpleados.find(e => e.id === id); }
+        const eur = v => v.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
         function setRrhhTab(sub) {
             document.querySelectorAll('.rrhh-subpane').forEach(p => p.classList.remove('active'));
@@ -1783,36 +1808,16 @@
             document.getElementById(`rrhh-${sub}`).classList.add('active');
             document.getElementById(`rt-${sub}`).classList.add('active');
             if (sub === 'emp') renderRrhhEmpleados();
-            if (sub === 'nom') { poblarSelectorNomina(); calcularNomina(); }
+            if (sub === 'cal') { poblarSelector('cal-emp-sel'); renderCalendario(); }
+            if (sub === 'nom') { poblarSelector('nom-emp-sel'); calcularNomina(); }
             if (sub === 'vac') renderRrhhVacaciones();
             if (sub === 'doc') renderRrhhDocs();
         }
 
-        function renderRrhhEmpleados() {
-            const body = document.getElementById('rrhh-emp-body');
-            if (!body) return;
-            body.innerHTML = '';
-            rrhhEmpleados.forEach(e => {
-                const bonif = e.discapacidad >= 33
-                    ? '<span class="badge badge-success">✔ Aplicable</span>'
-                    : '<span class="badge panel-secondary">—</span>';
-                const disc = e.discapacidad > 0 ? `${e.discapacidad}%` : '—';
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="font-bold">${escapeHtml(e.nombre)}</td>
-                    <td>${escapeHtml(e.puesto)}</td>
-                    <td>${escapeHtml(e.jornada)}</td>
-                    <td>${e.brutoAnual.toLocaleString('es-ES')} €</td>
-                    <td>${disc}</td>
-                    <td>${bonif}</td>
-                `;
-                body.appendChild(tr);
-            });
-        }
-
-        function poblarSelectorNomina() {
-            const sel = document.getElementById('nom-emp-sel');
+        function poblarSelector(selId) {
+            const sel = document.getElementById(selId);
             if (!sel) return;
+            const prev = sel.value;
             sel.innerHTML = '';
             rrhhEmpleados.forEach(e => {
                 const opt = document.createElement('option');
@@ -1820,8 +1825,222 @@
                 opt.textContent = e.nombre;
                 sel.appendChild(opt);
             });
+            if (prev && rrhhEmpleadoPorId(prev)) sel.value = prev;
         }
 
+        // ---------- EMPLEADOS: LISTA + FICHA ----------
+        function renderRrhhEmpleados() {
+            const body = document.getElementById('rrhh-emp-body');
+            if (!body) return;
+            body.innerHTML = '';
+            rrhhEmpleados.forEach(e => {
+                const salario = e.tipoSalario === 'hora'
+                    ? `${e.precioHora.toFixed(3)} €/h · ${e.horasMes} h/mes`
+                    : `${eur(e.salarioMes)} /mes`;
+                const disc = e.discapacidad >= 33
+                    ? `<span class="badge badge-success">${e.discapacidad}% · Bonif. SS</span>`
+                    : (e.discapacidad > 0 ? `${e.discapacidad}%` : '—');
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-bold">${escapeHtml(e.nombre)}<div class="font-size-xxs text-muted">${escapeHtml(e.dni || '')}</div></td>
+                    <td>${escapeHtml(e.puesto)}<div class="font-size-xxs text-muted">${escapeHtml(e.categoria || '')}</div></td>
+                    <td>${e.horasMes} h/mes</td>
+                    <td>${salario}</td>
+                    <td>${disc}</td>
+                    <td>
+                        <button class="btn btn-sm" style="padding:0.3rem 0.6rem; font-size:0.7rem;" onclick="abrirFicha('${e.id}')">📝 Ficha</button>
+                        <button class="btn btn-outline btn-sm" style="padding:0.3rem 0.6rem; font-size:0.7rem;" onclick="verNominaDe('${e.id}')">💶 Nómina</button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function verNominaDe(id) {
+            setRrhhTab('nom');
+            const sel = document.getElementById('nom-emp-sel');
+            if (sel) { sel.value = id; calcularNomina(); }
+        }
+
+        function toggleTipoSalario() {
+            const tipo = document.getElementById('fe-tipo-salario').value;
+            document.getElementById('grp-precio-hora').style.display = tipo === 'hora' ? '' : 'none';
+            document.getElementById('grp-salario-mes').style.display = tipo === 'mes' ? '' : 'none';
+        }
+
+        function renderComplementosEditor(empComplementos) {
+            const grid = document.getElementById('fe-complementos');
+            grid.innerHTML = '';
+            const activos = {};
+            (empComplementos || []).forEach(c => activos[c.nombre] = c.importe);
+            COMPLEMENTOS_CATALOGO.forEach(c => {
+                const checked = activos.hasOwnProperty(c.nombre);
+                const imp = checked ? activos[c.nombre] : c.importe;
+                grid.insertAdjacentHTML('beforeend', `
+                    <label class="comp-item ${checked ? 'comp-on' : ''}">
+                        <input type="checkbox" class="comp-check" data-nombre="${escapeHtml(c.nombre)}" ${checked ? 'checked' : ''} onchange="this.closest('.comp-item').classList.toggle('comp-on', this.checked)">
+                        <span class="comp-nombre">${escapeHtml(c.nombre)}</span>
+                        <input type="number" class="comp-importe" step="0.01" min="0" value="${imp}"> <span class="comp-eur">€/mes</span>
+                    </label>`);
+            });
+            // Custom (no catálogo) ya guardados
+            (empComplementos || []).filter(c => !COMPLEMENTOS_CATALOGO.some(k => k.nombre === c.nombre)).forEach(c => {
+                anadirComplementoCustom(c.nombre, c.importe);
+            });
+        }
+
+        function anadirComplementoCustom(nombre, importe) {
+            const grid = document.getElementById('fe-complementos');
+            const n = typeof nombre === 'string' ? nombre : '';
+            const i = typeof importe === 'number' ? importe : 0;
+            grid.insertAdjacentHTML('beforeend', `
+                <label class="comp-item comp-on comp-custom">
+                    <input type="checkbox" class="comp-check" data-custom="1" checked onchange="if(!this.checked) this.closest('.comp-item').remove()">
+                    <input type="text" class="comp-nombre-input" placeholder="Nombre del concepto" value="${escapeHtml(n)}">
+                    <input type="number" class="comp-importe" step="0.01" min="0" value="${i}"> <span class="comp-eur">€/mes</span>
+                </label>`);
+        }
+
+        function nuevoEmpleado() { abrirFicha(null); }
+
+        function abrirFicha(id) {
+            const e = id ? rrhhEmpleadoPorId(id) : null;
+            document.getElementById('ficha-empleado-panel').style.display = 'block';
+            document.getElementById('ficha-titulo').innerText = e ? e.nombre : 'NUEVO';
+            document.getElementById('fe-id').value = e ? e.id : '';
+            document.getElementById('fe-nombre').value = e ? e.nombre : '';
+            document.getElementById('fe-dni').value = e ? (e.dni || '') : '';
+            document.getElementById('fe-puesto').value = e ? e.puesto : '';
+            document.getElementById('fe-categoria').value = e ? (e.categoria || '') : '';
+            document.getElementById('fe-antiguedad').value = e ? (e.antiguedad || '') : '';
+            document.getElementById('fe-tipo-salario').value = e ? e.tipoSalario : 'hora';
+            document.getElementById('fe-precio-hora').value = e ? e.precioHora : 13.023;
+            document.getElementById('fe-horas-mes').value = e ? e.horasMes : 60;
+            document.getElementById('fe-salario-mes').value = e ? e.salarioMes : 1500;
+            document.getElementById('fe-pagas').value = e ? e.pagas : 'prorrateadas';
+            document.getElementById('fe-irpf').value = e ? e.irpf : 2;
+            document.getElementById('fe-disc').value = e ? e.discapacidad : 0;
+            toggleTipoSalario();
+            renderComplementosEditor(e ? e.complementos : []);
+            document.getElementById('ficha-empleado-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function cerrarFicha() { document.getElementById('ficha-empleado-panel').style.display = 'none'; }
+
+        function leerComplementosEditor() {
+            const out = [];
+            document.querySelectorAll('#fe-complementos .comp-item').forEach(item => {
+                const check = item.querySelector('.comp-check');
+                if (!check.checked) return;
+                const importe = parseFloat(item.querySelector('.comp-importe').value) || 0;
+                let nombre;
+                if (check.dataset.custom) {
+                    nombre = (item.querySelector('.comp-nombre-input').value || '').trim();
+                    if (!nombre) return;
+                } else {
+                    nombre = check.dataset.nombre;
+                }
+                out.push({ nombre, importe });
+            });
+            return out;
+        }
+
+        async function guardarFichaEmpleado() {
+            const id = document.getElementById('fe-id').value;
+            const nombre = document.getElementById('fe-nombre').value.trim();
+            if (!nombre) { alert('El nombre es obligatorio.'); return; }
+            const datos = {
+                nombre,
+                dni: document.getElementById('fe-dni').value.trim(),
+                puesto: document.getElementById('fe-puesto').value.trim(),
+                categoria: document.getElementById('fe-categoria').value.trim(),
+                antiguedad: document.getElementById('fe-antiguedad').value,
+                tipoSalario: document.getElementById('fe-tipo-salario').value,
+                precioHora: parseFloat(document.getElementById('fe-precio-hora').value) || 0,
+                horasMes: parseInt(document.getElementById('fe-horas-mes').value) || 0,
+                salarioMes: parseFloat(document.getElementById('fe-salario-mes').value) || 0,
+                pagas: document.getElementById('fe-pagas').value,
+                irpf: parseFloat(document.getElementById('fe-irpf').value) || 0,
+                discapacidad: parseInt(document.getElementById('fe-disc').value) || 0,
+                complementos: leerComplementosEditor()
+            };
+            if (id) {
+                const e = rrhhEmpleadoPorId(id);
+                Object.assign(e, datos);
+                await registrarAuditLog('RRHH_EMPLEADO', `Ficha del empleado ${nombre} actualizada.`);
+            } else {
+                const newId = 'E' + (Date.now() % 100000);
+                rrhhEmpleados.push({ id: newId, ...datos });
+                await registrarAuditLog('RRHH_EMPLEADO', `Alta de empleado: ${nombre} (${datos.puesto}).`);
+            }
+            rrhhGuardar();
+            cerrarFicha();
+            renderRrhhEmpleados();
+            showToast('Ficha guardada correctamente.');
+        }
+
+        // ---------- CALENDARIO LABORAL ----------
+        function diasVacacionesAprobadas(empId, year, month) {
+            const set = new Set();
+            rrhhVacaciones.filter(v => v.empId === empId && v.estado === 'Aprobada').forEach(v => {
+                let d = new Date(v.desde + 'T00:00:00');
+                const fin = new Date(v.hasta + 'T00:00:00');
+                while (d <= fin) {
+                    if (d.getFullYear() === year && d.getMonth() === month) set.add(d.getDate());
+                    d.setDate(d.getDate() + 1);
+                }
+            });
+            return set;
+        }
+
+        function renderCalendario() {
+            const grid = document.getElementById('calendario-grid');
+            const resumen = document.getElementById('cal-resumen');
+            const sel = document.getElementById('cal-emp-sel');
+            if (!grid || !sel || !sel.value) return;
+            const e = rrhhEmpleadoPorId(sel.value);
+            const mesVal = document.getElementById('cal-mes').value || '2026-07';
+            const [year, month] = mesVal.split('-').map(Number);
+            const m = month - 1;
+
+            const primerDia = new Date(year, m, 1);
+            const diasEnMes = new Date(year, m + 1, 0).getDate();
+            const vacs = diasVacacionesAprobadas(e.id, year, m);
+
+            // Laborables del mes (L-V) para repartir horas
+            let laborables = 0;
+            for (let d = 1; d <= diasEnMes; d++) {
+                const dow = new Date(year, m, d).getDay();
+                if (dow !== 0 && dow !== 6) laborables++;
+            }
+            const horasDia = laborables > 0 ? e.horasMes / laborables : 0;
+            const diasTrabajados = laborables - [...vacs].filter(d => { const dow = new Date(year, m, d).getDay(); return dow !== 0 && dow !== 6; }).length;
+
+            resumen.innerHTML = `
+                <div class="cal-stat"><span>Jornada contratada</span><b>${e.horasMes} h/mes</b></div>
+                <div class="cal-stat"><span>Días laborables</span><b>${laborables}</b></div>
+                <div class="cal-stat"><span>Horas/día estimadas</span><b>${horasDia.toFixed(2)} h</b></div>
+                <div class="cal-stat"><span>Vacaciones este mes</span><b>${vacs.size} día(s)</b></div>
+                <div class="cal-stat"><span>Días efectivos</span><b>${diasTrabajados}</b></div>
+            `;
+
+            let html = '';
+            ['L','M','X','J','V','S','D'].forEach(d => html += `<div class="cal-dow">${d}</div>`);
+            let offset = (primerDia.getDay() + 6) % 7; // lunes = 0
+            for (let i = 0; i < offset; i++) html += '<div class="cal-cell cal-empty"></div>';
+            for (let d = 1; d <= diasEnMes; d++) {
+                const dow = new Date(year, m, d).getDay();
+                const esFinde = (dow === 0 || dow === 6);
+                const esVac = vacs.has(d);
+                let cls = 'cal-lab', body = `${horasDia.toFixed(1)}h`;
+                if (esFinde) { cls = 'cal-finde'; body = ''; }
+                if (esVac) { cls = 'cal-vac'; body = '🏖️'; }
+                html += `<div class="cal-cell ${cls}"><span class="cal-num">${d}</span><span class="cal-horas">${body}</span></div>`;
+            }
+            grid.innerHTML = html;
+        }
+
+        // ---------- NÓMINA COMPLETA ----------
         function calcularNomina() {
             const sel = document.getElementById('nom-emp-sel');
             const box = document.getElementById('nomina-doc');
@@ -1830,40 +2049,100 @@
             if (!e) return;
             const mes = document.getElementById('nom-mes').value || '2026-07';
 
-            const brutoMes = e.brutoAnual / 12; // pagas extra prorrateadas
-            const dedIrpf = brutoMes * (e.irpf / 100);
-            const dedSS = brutoMes * RRHH_SS_TRABAJADOR;
-            const liquido = brutoMes - dedIrpf - dedSS;
-            const f = v => v.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+            // DEVENGOS
+            const salarioBase = e.tipoSalario === 'hora' ? e.precioHora * e.horasMes : e.salarioMes;
+            const complementos = (e.complementos || []);
+            const totalComplementos = complementos.reduce((a, c) => a + c.importe, 0);
+            const ppExtras = (salarioBase + totalComplementos) * 2 / 12; // prorrata de 2 pagas
+            const incluyePP = e.pagas === 'prorrateadas';
+            const devengado = salarioBase + totalComplementos + (incluyePP ? ppExtras : 0);
+
+            // BASES: la base de cotización SIEMPRE incluye la prorrata de pagas extras
+            const baseSS = salarioBase + totalComplementos + ppExtras;
+            const baseIRPF = devengado;
+
+            // DEDUCCIONES TRABAJADOR
+            let filasDed = '', totalDed = 0;
+            COT_TRAB.forEach(c => {
+                const imp = baseSS * c.tipo / 100;
+                totalDed += imp;
+                filasDed += `<tr><td>${c.concepto} <span class="text-muted">${c.tipo.toFixed(2)}%</span></td><td class="text-right">−${eur(imp)}</td></tr>`;
+            });
+            const irpfImp = baseIRPF * e.irpf / 100;
+            totalDed += irpfImp;
+            const liquido = devengado - totalDed;
+
+            // APORTACIÓN EMPRESA
+            let filasEmp = '', totalEmp = 0;
+            COT_EMPRESA.forEach(c => {
+                const imp = baseSS * c.tipo / 100;
+                totalEmp += imp;
+                filasEmp += `<tr><td>${c.concepto}</td><td class="text-right">${eur(baseSS)}</td><td class="text-right">${c.tipo.toFixed(2)}%</td><td class="text-right">${eur(imp)}</td></tr>`;
+            });
+            const costeEmpresa = devengado + totalEmp;
+
+            // Filas de devengos
+            let filasDev = `<tr><td>*Salario Base${e.tipoSalario === 'hora' ? ` <span class="text-muted">(${e.horasMes} h × ${e.precioHora.toFixed(3)} €)</span>` : ''}</td><td class="text-right">${eur(salarioBase)}</td></tr>`;
+            if (incluyePP) filasDev += `<tr><td>*P.P. Pagas Extras</td><td class="text-right">${eur(ppExtras)}</td></tr>`;
+            complementos.forEach(c => filasDev += `<tr><td>*${escapeHtml(c.nombre)}</td><td class="text-right">${eur(c.importe)}</td></tr>`);
 
             const notaDisc = e.discapacidad >= 33
-                ? `<div class="nomina-nota">♿ Trabajador con discapacidad reconocida del ${e.discapacidad}%: el contrato puede beneficiarse de bonificaciones en las cuotas empresariales de la Seguridad Social y de mínimos incrementados en su IRPF. (Informativo — verificar con gestoría)</div>`
+                ? `<div class="nomina-nota">♿ Trabajador con discapacidad reconocida del ${e.discapacidad}%: contrato potencialmente bonificable en cuotas empresariales de la Seguridad Social y con mínimos incrementados en IRPF. (Informativo — verificar con gestoría)</div>`
                 : '';
 
+            const antig = e.antiguedad ? new Date(e.antiguedad + 'T00:00:00').toLocaleDateString('es-ES') : '—';
+
             box.innerHTML = `
-                <div class="nomina-header">
-                    <div>
-                        <div style="font-weight:800; font-size:0.9rem;">RECIBO DE SALARIOS <span class="beta-tag">SIMULACIÓN</span></div>
-                        <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(appConfig.razon)} · NIF ${escapeHtml(appConfig.nif)} · Periodo: ${escapeHtml(mes)}</div>
+                <div class="nomina-oficial">
+                    <div class="nomina-header">
+                        <div>
+                            <div style="font-weight:800; font-size:0.9rem;">RECIBO INDIVIDUAL DE SALARIOS <span class="beta-tag">SIMULACIÓN</span></div>
+                            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.2rem;">EMPRESA: ${escapeHtml(appConfig.razon)} · NIF ${escapeHtml(appConfig.nif)} · ${escapeHtml(appConfig.ciudad)}</div>
+                        </div>
+                        <div style="text-align:right; font-size:0.72rem;">
+                            <div class="font-bold" style="font-size:0.82rem;">${escapeHtml(e.nombre)}</div>
+                            <div style="color:var(--text-muted);">DNI ${escapeHtml(e.dni || '—')} · ${escapeHtml(e.categoria || e.puesto)} · Antigüedad: ${antig}</div>
+                            <div style="color:var(--text-muted);">Periodo: ${escapeHtml(mes)} · Horas en alta a tiempo parcial: ${e.horasMes},00</div>
+                        </div>
                     </div>
-                    <div style="text-align:right; font-size:0.78rem;">
-                        <div class="font-bold">${escapeHtml(e.nombre)}</div>
-                        <div style="color:var(--text-muted);">${escapeHtml(e.puesto)} · ${escapeHtml(e.jornada)}</div>
+
+                    <div class="nomina-cols">
+                        <div>
+                            <div class="nomina-col-title">DEVENGOS</div>
+                            <table class="data-table nomina-tabla"><tbody>${filasDev}
+                                <tr class="nomina-total-row"><td>TOTAL DEVENGADO</td><td class="text-right font-bold">${eur(devengado)}</td></tr>
+                            </tbody></table>
+                        </div>
+                        <div>
+                            <div class="nomina-col-title">DEDUCCIONES</div>
+                            <table class="data-table nomina-tabla"><tbody>${filasDed}
+                                <tr><td>RETENCIÓN I.R.P.F. <span class="text-muted">${e.irpf.toFixed(2)}%</span></td><td class="text-right">−${eur(irpfImp)}</td></tr>
+                                <tr class="nomina-total-row"><td>TOTAL A DEDUCIR</td><td class="text-right font-bold">−${eur(totalDed)}</td></tr>
+                            </tbody></table>
+                        </div>
                     </div>
+
+                    <div class="nomina-bases">
+                        <div class="cal-stat"><span>BASE S.S.</span><b>${eur(baseSS)}</b></div>
+                        <div class="cal-stat"><span>BASE A.T. Y DES.</span><b>${eur(baseSS)}</b></div>
+                        <div class="cal-stat"><span>BASE I.R.P.F.</span><b>${eur(baseIRPF)}</b></div>
+                        <div class="cal-stat cal-stat-liquido"><span>LÍQUIDO A PERCIBIR</span><b>${eur(liquido)}</b></div>
+                    </div>
+                    ${notaDisc}
+
+                    <div class="nomina-col-title" style="margin-top:1.25rem;">DETERMINACIÓN DE LAS BASES DE COTIZACIÓN Y APORTACIÓN DE LA EMPRESA</div>
+                    <table class="data-table nomina-tabla">
+                        <thead><tr><th>Concepto</th><th class="text-right">Base</th><th class="text-right">Tipo</th><th class="text-right">Aportación empresarial</th></tr></thead>
+                        <tbody>${filasEmp}
+                            <tr class="nomina-total-row"><td colspan="3">COSTE TOTAL EMPRESA (devengado + cotizaciones empresa)</td><td class="text-right font-bold">${eur(costeEmpresa)}</td></tr>
+                        </tbody>
+                    </table>
+                    <div style="font-size:0.66rem; color:var(--text-muted); margin-top:0.75rem;">⚠️ Recibo de demostración con tipos generales simplificados (AT/EP fijo al 3,00%; sin convenio, antigüedad progresiva, horas extra ni situaciones especiales). No válido como documento laboral, fiscal ni de Seguridad Social.</div>
                 </div>
-                <table class="data-table" style="margin-top:0.75rem;">
-                    <tbody>
-                        <tr><td>Salario base (pagas prorrateadas)</td><td class="text-right font-bold">${f(brutoMes)}</td></tr>
-                        <tr><td style="color:var(--error);">− Retención IRPF (${e.irpf}%)</td><td class="text-right" style="color:var(--error);">−${f(dedIrpf)}</td></tr>
-                        <tr><td style="color:var(--error);">− Cotización Seguridad Social trabajador (${(RRHH_SS_TRABAJADOR*100).toFixed(2)}%)</td><td class="text-right" style="color:var(--error);">−${f(dedSS)}</td></tr>
-                        <tr><td class="font-bold" style="font-size:0.95rem;">LÍQUIDO A PERCIBIR</td><td class="text-right font-bold" style="font-size:0.95rem; color:var(--success);">${f(liquido)}</td></tr>
-                    </tbody>
-                </table>
-                ${notaDisc}
-                <div style="font-size:0.68rem; color:var(--text-muted); margin-top:0.75rem;">⚠️ Cálculo orientativo de demostración con tipos simplificados. Una nómina real depende del convenio colectivo, la situación personal del trabajador (IRPF), bases de cotización y demás circunstancias. No usar como documento oficial.</div>
             `;
         }
 
+        // ---------- VACACIONES ----------
         async function resolverVacacion(id, decision) {
             const v = rrhhVacaciones.find(x => x.id === id);
             if (!v) return;
@@ -1902,6 +2181,7 @@
             });
         }
 
+        // ---------- DOCUMENTOS Y FIRMA ----------
         async function firmarDocumento(id) {
             const d = rrhhDocs.find(x => x.id === id);
             if (!d || d.estado === 'Firmado') return;

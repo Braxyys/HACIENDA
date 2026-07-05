@@ -729,50 +729,109 @@
             <!-- ===================================== -->
             <div class="tab-pane" id="pane-rrhh">
                 <div class="glass-panel" style="border-left: 4px solid var(--primary);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-                        <div>
-                            <h3 style="font-size:1.05rem; font-weight:700;">Módulo de Gestión Laboral <span class="beta-tag">BETA</span></h3>
-                            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">Vista previa exclusiva del Administrador: nóminas, vacaciones y firma de documentos. Simulación con datos de demostración — hoja de ruta del producto, no cálculo laboral real.</p>
-                        </div>
+                    <div>
+                        <h3 style="font-size:1.05rem; font-weight:700;">Módulo de Gestión Laboral <span class="beta-tag">BETA</span></h3>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">Vista exclusiva del Administrador: fichas de empleados, calendario, nóminas con cotizaciones, vacaciones y firma. Simulación demostrativa — no constituye cálculo laboral real.</p>
                     </div>
                     <div class="rrhh-subtabs">
                         <button class="rrhh-subtab-btn active" id="rt-emp" onclick="setRrhhTab('emp')">👥 Empleados</button>
+                        <button class="rrhh-subtab-btn" id="rt-cal" onclick="setRrhhTab('cal')">📅 Calendario</button>
                         <button class="rrhh-subtab-btn" id="rt-nom" onclick="setRrhhTab('nom')">💶 Nóminas</button>
                         <button class="rrhh-subtab-btn" id="rt-vac" onclick="setRrhhTab('vac')">🏖️ Vacaciones</button>
                         <button class="rrhh-subtab-btn" id="rt-doc" onclick="setRrhhTab('doc')">✍️ Documentos y Firma</button>
                     </div>
                 </div>
 
-                <!-- SUBTAB EMPLEADOS -->
+                <!-- SUBTAB EMPLEADOS: LISTA + FICHA EDITABLE -->
                 <div class="rrhh-subpane active" id="rrhh-emp">
                     <div class="glass-panel">
-                        <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:1rem;">Plantilla de la Empresa</h3>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+                            <h3 style="font-size:0.95rem; font-weight:700;">Registro de Empleados</h3>
+                            <button class="btn" style="padding:0.45rem 0.9rem; font-size:0.78rem;" onclick="nuevoEmpleado()">＋ Alta de empleado</button>
+                        </div>
                         <div class="table-container">
                             <table class="data-table">
                                 <thead>
-                                    <tr><th>Empleado</th><th>Puesto</th><th>Jornada</th><th>Bruto anual</th><th>Discapacidad</th><th>Bonificación SS</th></tr>
+                                    <tr><th>Empleado</th><th>Puesto / Categoría</th><th>Jornada</th><th>Salario</th><th>Discapacidad</th><th>Acciones</th></tr>
                                 </thead>
                                 <tbody id="rrhh-emp-body"></tbody>
                             </table>
                         </div>
-                        <p style="font-size:0.72rem; color:var(--text-muted); margin-top:0.75rem;">💡 Los contratos con trabajadores con discapacidad ≥ 33% pueden acceder a bonificaciones en las cuotas de la Seguridad Social y deducciones en el Impuesto de Sociedades. El módulo las señala automáticamente.</p>
+                    </div>
+
+                    <!-- FICHA DEL EMPLEADO (editor) -->
+                    <div class="glass-panel" id="ficha-empleado-panel" style="display:none;">
+                        <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:1rem;">Ficha del Empleado <span id="ficha-titulo" class="beta-tag" style="background:var(--primary);">—</span></h3>
+                        <input type="hidden" id="fe-id">
+                        <div class="form-row">
+                            <div class="form-group"><label>Nombre completo</label><input type="text" id="fe-nombre" placeholder="Nombre y apellidos"></div>
+                            <div class="form-group"><label>DNI (demo)</label><input type="text" id="fe-dni" placeholder="12345678Z"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Puesto</label><input type="text" id="fe-puesto" placeholder="Ej. Monitor/a de ocio"></div>
+                            <div class="form-group"><label>Categoría (convenio)</label><input type="text" id="fe-categoria" placeholder="Ej. MONITOR MU"></div>
+                            <div class="form-group"><label>Fecha de antigüedad</label><input type="date" id="fe-antiguedad"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Tipo de salario</label>
+                                <select id="fe-tipo-salario" onchange="toggleTipoSalario()">
+                                    <option value="hora">Por horas (€/hora)</option>
+                                    <option value="mes">Mensual fijo</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="grp-precio-hora"><label>Precio hora (€)</label><input type="number" id="fe-precio-hora" step="0.001" min="0" value="13.023"></div>
+                            <div class="form-group" id="grp-horas-mes"><label>Horas / mes</label><input type="number" id="fe-horas-mes" step="1" min="0" value="60"></div>
+                            <div class="form-group" id="grp-salario-mes" style="display:none;"><label>Salario mensual bruto (€)</label><input type="number" id="fe-salario-mes" step="0.01" min="0" value="1500"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Pagas extras</label>
+                                <select id="fe-pagas">
+                                    <option value="prorrateadas">Prorrateadas en 12 pagas</option>
+                                    <option value="separadas">2 pagas extra separadas (14 pagas)</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label>Retención IRPF (%)</label><input type="number" id="fe-irpf" step="0.1" min="0" max="47" value="2"></div>
+                            <div class="form-group"><label>Discapacidad reconocida (%)</label><input type="number" id="fe-disc" step="1" min="0" max="100" value="0"></div>
+                        </div>
+                        <div style="margin-top:0.5rem;">
+                            <label style="font-size:0.78rem; font-weight:700; display:block; margin-bottom:0.5rem;">Complementos salariales del empleado <span style="font-weight:400; color:var(--text-muted);">(marca los que percibe y ajusta el importe mensual)</span></label>
+                            <div id="fe-complementos" class="complementos-grid"></div>
+                            <button class="btn btn-outline" style="padding:0.35rem 0.7rem; font-size:0.72rem; margin-top:0.5rem;" onclick="anadirComplementoCustom()">＋ Añadir otro concepto</button>
+                        </div>
+                        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.25rem;">
+                            <button class="btn btn-outline" onclick="cerrarFicha()">Cancelar</button>
+                            <button class="btn" onclick="guardarFichaEmpleado()">💾 Guardar ficha</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUBTAB CALENDARIO -->
+                <div class="rrhh-subpane" id="rrhh-cal">
+                    <div class="glass-panel">
+                        <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:0.5rem;">Calendario Laboral por Empleado</h3>
+                        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">Vista mensual con días laborables, horas estimadas por día, fines de semana y vacaciones aprobadas.</p>
+                        <div class="form-row">
+                            <div class="form-group"><label>Empleado</label><select id="cal-emp-sel" onchange="renderCalendario()"></select></div>
+                            <div class="form-group"><label>Mes</label><input type="month" id="cal-mes" value="2026-07" onchange="renderCalendario()"></div>
+                        </div>
+                        <div id="cal-resumen" class="cal-resumen"></div>
+                        <div id="calendario-grid" class="cal-grid"></div>
+                        <div class="cal-leyenda">
+                            <span><i class="cal-dot dot-lab"></i> Laborable</span>
+                            <span><i class="cal-dot dot-fin"></i> Fin de semana</span>
+                            <span><i class="cal-dot dot-vac"></i> Vacaciones / Ausencia aprobada</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- SUBTAB NÓMINAS -->
                 <div class="rrhh-subpane" id="rrhh-nom">
                     <div class="glass-panel">
-                        <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:0.5rem;">Generador de Nómina (Simulación)</h3>
-                        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">Selecciona un empleado para calcular su recibo de salarios del mes en curso con desglose de devengos y deducciones orientativas.</p>
+                        <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:0.5rem;">Generador de Nómina Completa (Simulación)</h3>
+                        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem;">Recibo de salarios con estructura oficial: devengos, cotizaciones del trabajador (CC, MEI, FP, desempleo), IRPF, bases de cotización, líquido y aportación empresarial con coste total de empresa.</p>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Empleado</label>
-                                <select id="nom-emp-sel" onchange="calcularNomina()"></select>
-                            </div>
-                            <div class="form-group">
-                                <label>Mes de liquidación</label>
-                                <input type="month" id="nom-mes" value="2026-07" onchange="calcularNomina()">
-                            </div>
+                            <div class="form-group"><label>Empleado</label><select id="nom-emp-sel" onchange="calcularNomina()"></select></div>
+                            <div class="form-group"><label>Mes de liquidación</label><input type="month" id="nom-mes" value="2026-07" onchange="calcularNomina()"></div>
                         </div>
                         <div id="nomina-doc" class="nomina-doc"></div>
                         <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem;">
@@ -793,7 +852,7 @@
                                 <tbody id="rrhh-vac-body"></tbody>
                             </table>
                         </div>
-                        <p style="font-size:0.72rem; color:var(--text-muted); margin-top:0.75rem;">Cada aprobación o denegación queda registrada en el Audit Trail con la identidad del administrador, igual que las operaciones de facturación.</p>
+                        <p style="font-size:0.72rem; color:var(--text-muted); margin-top:0.75rem;">Cada aprobación o denegación queda registrada en el Audit Trail con la identidad del administrador. Las vacaciones aprobadas se reflejan automáticamente en el Calendario.</p>
                     </div>
                 </div>
 
@@ -809,7 +868,7 @@
                                 <tbody id="rrhh-doc-body"></tbody>
                             </table>
                         </div>
-                        <p style="font-size:0.72rem; color:var(--text-muted); margin-top:0.75rem;">La firma simulada calcula la huella SHA-256 del documento y la ancla al registro de eventos, reutilizando la misma tecnología de integridad que el encadenamiento de facturas VeriFactu.</p>
+                        <p style="font-size:0.72rem; color:var(--text-muted); margin-top:0.75rem;">La firma simulada calcula la huella SHA-256 del documento y la ancla al registro de eventos, la misma tecnología de integridad que el encadenamiento VeriFactu.</p>
                     </div>
                 </div>
             </div>
