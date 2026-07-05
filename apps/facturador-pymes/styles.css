@@ -1147,6 +1147,44 @@ input[readonly], select[readonly] {
                 border-radius: 0 !important;
                 font-size: 0.95rem !important;
             }
+
+    /* --- Impresion aislada de la NOMINA (solo el recibo) --- */
+    body.print-nomina-active .app-container,
+    body.print-nomina-active .workspace {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        position: static !important;
+    }
+    body.print-nomina-active aside,
+    body.print-nomina-active header,
+    body.print-nomina-active .workspace-header,
+    body.print-nomina-active .info-alert,
+    body.print-nomina-active .no-print,
+    body.print-nomina-active .modal-overlay,
+    body.print-nomina-active .printable-invoice,
+    body.print-nomina-active #pane-rrhh > .glass-panel,
+    body.print-nomina-active .rrhh-subpane {
+        display: none !important;
+    }
+    body.print-nomina-active #rrhh-nom { display: block !important; }
+    body.print-nomina-active #rrhh-nom .glass-panel {
+        display: block !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        background: #fff !important;
+    }
+    body.print-nomina-active #rrhh-nom .glass-panel > h3,
+    body.print-nomina-active #rrhh-nom .glass-panel > p,
+    body.print-nomina-active #rrhh-nom .form-row {
+        display: none !important;
+    }
+    body.print-nomina-active #nomina-doc {
+        display: block !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
         }
 
         /* Active Session Info Box in Sidebar */

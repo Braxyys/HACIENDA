@@ -161,6 +161,16 @@
             }, 1000);
         }
 
+        function imprimirNomina() {
+            const box = document.getElementById('nomina-doc');
+            if (!box || !box.innerHTML.trim()) { alert('Selecciona un empleado para generar la nómina antes de imprimir.'); return; }
+            document.body.classList.add('print-nomina-active');
+            window.print();
+            setTimeout(() => {
+                document.body.classList.remove('print-nomina-active');
+            }, 1000);
+        }
+
         // --- EXPORTACIÓN E IMPORTACIÓN DE BASE DE DATOS (BACKUP JSON) ---
         function exportarBaseDatosJSON() {
             const dataToExport = {
