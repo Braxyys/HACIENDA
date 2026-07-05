@@ -1740,17 +1740,17 @@
         // Simulación demostrativa. Estructura de nómina basada en
         // el recibo oficial español. NO es cálculo laboral real.
         // =====================================================
-        // Tipos de cotización del TRABAJADOR (recibo real 2025/26)
+        // Tipos de cotización del TRABAJADOR (tipos 2026: MEI 0,90% total)
         const COT_TRAB = [
             { concepto: 'COTIZACIÓN CONT. COMUNES', tipo: 4.70 },
-            { concepto: 'COTIZACIÓN MEI', tipo: 0.13 },
+            { concepto: 'COTIZACIÓN MEI', tipo: 0.15 },
             { concepto: 'COTIZACIÓN FORMACIÓN', tipo: 0.10 },
             { concepto: 'COTIZACIÓN DESEMPLEO', tipo: 1.55 }
         ];
         // Aportación de la EMPRESA
         const COT_EMPRESA = [
             { concepto: 'Contingencias comunes', tipo: 23.60 },
-            { concepto: 'Mecanismo Equidad Intergeneracional (MEI)', tipo: 0.67 },
+            { concepto: 'Mecanismo Equidad Intergeneracional (MEI)', tipo: 0.75 },
             { concepto: 'AT y EP', tipo: 3.00 },
             { concepto: 'Desempleo', tipo: 5.50 },
             { concepto: 'Formación Profesional', tipo: 0.60 },
