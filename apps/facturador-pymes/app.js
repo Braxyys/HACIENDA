@@ -171,6 +171,16 @@
             }, 1000);
         }
 
+        function imprimirCalendario() {
+            const grid = document.getElementById('calendario-grid');
+            if (!grid || !grid.innerHTML.trim()) { alert('Selecciona un empleado para generar el calendario antes de imprimir.'); return; }
+            document.body.classList.add('print-cal-active');
+            window.print();
+            setTimeout(() => {
+                document.body.classList.remove('print-cal-active');
+            }, 1000);
+        }
+
         // --- EXPORTACIÓN E IMPORTACIÓN DE BASE DE DATOS (BACKUP JSON) ---
         function exportarBaseDatosJSON() {
             const dataToExport = {
@@ -1766,6 +1776,23 @@
             { concepto: 'Formación Profesional', tipo: 0.60 },
             { concepto: 'Fondo Garantía Salarial', tipo: 0.20 }
         ];
+        // Tabla oficial del MEI (Mecanismo de Equidad Intergeneracional). Sube
+        // 0,1 pp/año hasta 1,2% en 2029. Reparto 5/6 empresa · 1/6 trabajador.
+        // Fuente: DT 4ª bis LGSS (RDL 2/2023). El tipo depende del AÑO de la nómina.
+        const MEI_POR_ANIO = {
+            2023: { trab: 0.10, empresa: 0.50 },
+            2024: { trab: 0.12, empresa: 0.58 },
+            2025: { trab: 0.13, empresa: 0.67 },
+            2026: { trab: 0.15, empresa: 0.75 },
+            2027: { trab: 0.17, empresa: 0.83 },
+            2028: { trab: 0.18, empresa: 0.92 },
+            2029: { trab: 0.20, empresa: 1.00 }
+        };
+        function meiPorAnio(anio) {
+            if (MEI_POR_ANIO[anio]) return MEI_POR_ANIO[anio];
+            if (anio < 2023) return MEI_POR_ANIO[2023];
+            return MEI_POR_ANIO[2029]; // 2029 en adelante se mantiene hasta nueva revisión legal
+        }
         // Catálogo de complementos habituales (seleccionables por empleado)
         const COMPLEMENTOS_CATALOGO = [
             { key: 'dedicacion', nombre: 'C. Dedicación', importe: 7.26 },
@@ -2058,6 +2085,11 @@
             const e = rrhhEmpleadoPorId(sel.value);
             if (!e) return;
             const mes = document.getElementById('nom-mes').value || '2026-07';
+            // El tipo de MEI cambia cada año: lo tomamos del año de la nómina
+            const anioNom = parseInt((mes || '2026-07').slice(0, 4), 10) || 2026;
+            const mei = meiPorAnio(anioNom);
+            const cotTrab = COT_TRAB.map(c => c.concepto === 'COTIZACIÓN MEI' ? { ...c, tipo: mei.trab } : c);
+            const cotEmpresa = COT_EMPRESA.map(c => c.concepto.indexOf('Mecanismo Equidad') === 0 ? { ...c, tipo: mei.empresa } : c);
 
             // DEVENGOS
             const salarioBase = e.tipoSalario === 'hora' ? e.precioHora * e.horasMes : e.salarioMes;
@@ -2073,7 +2105,7 @@
 
             // DEDUCCIONES TRABAJADOR
             let filasDed = '', totalDed = 0;
-            COT_TRAB.forEach(c => {
+            cotTrab.forEach(c => {
                 const imp = baseSS * c.tipo / 100;
                 totalDed += imp;
                 filasDed += `<tr><td>${c.concepto} <span class="text-muted">${c.tipo.toFixed(2)}%</span></td><td class="text-right">−${eur(imp)}</td></tr>`;
@@ -2084,7 +2116,7 @@
 
             // APORTACIÓN EMPRESA
             let filasEmp = '', totalEmp = 0;
-            COT_EMPRESA.forEach(c => {
+            cotEmpresa.forEach(c => {
                 const imp = baseSS * c.tipo / 100;
                 totalEmp += imp;
                 filasEmp += `<tr><td>${c.concepto}</td><td class="text-right">${eur(baseSS)}</td><td class="text-right">${c.tipo.toFixed(2)}%</td><td class="text-right">${eur(imp)}</td></tr>`;
